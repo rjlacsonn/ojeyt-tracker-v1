@@ -2,6 +2,11 @@
 
 A clean, responsive OJT (On-the-Job Training) hour tracker built with vanilla HTML, CSS, and JavaScript.
 
+Refreshing the site shows a loading screen while the saved session and account
+data are restored. The login page appears only after confirming the visitor is
+signed out. Slow or failed startup offers a Reload page button. No database
+migration is needed for this behavior.
+
 ## Getting Started
 
 ### Option 1 — Open directly (simplest)
@@ -124,3 +129,6 @@ start with no target until their professor allocates hours. Older targets withou
 a professor allocation record are cleared and must be assigned again.
 Apply `supabase-student-progress-migration.sql` afterward to show each enrolled
 student's assigned, logged, and remaining hours plus completion in Students.
+Review also shows each student's document completion and a requirement checklist,
+including enrolled students with no submissions. Search or select a student to
+monitor their requirements and review files together.

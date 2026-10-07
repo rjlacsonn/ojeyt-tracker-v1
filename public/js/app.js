@@ -18,13 +18,20 @@ function navTo(page) {
     return;
   }
 
+  const wasInWorkspace = Boolean(document.activeElement?.closest('#main-content-container, #topbar-container'));
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const targetPage = document.getElementById(`page-${page}`);
   if (targetPage) targetPage.classList.add('active');
 
-  document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.classList.remove('active');
+    btn.removeAttribute('aria-current');
+  });
   const navBtn = document.querySelector(`.nav-btn[data-page="${page}"]`);
-  if (navBtn) navBtn.classList.add('active');
+  if (navBtn) {
+    navBtn.classList.add('active');
+    navBtn.setAttribute('aria-current', 'page');
+  }
 
   currentPage = page;
   if (page === 'dashboard') {
@@ -40,6 +47,13 @@ function navTo(page) {
   if (page === 'student-home') Enrollment.openStudent();
   if (page === 'student-approvals') Enrollment.openProfessor();
   if (page === 'account-unavailable') renderAccountUnavailable();
+  // Move keyboard and screen-reader focus into the newly opened page.
+  const heading = targetPage?.querySelector('h1');
+  if (heading && wasInWorkspace) {
+    heading.setAttribute('tabindex', '-1');
+    heading.focus({ preventScroll: true });
+  }
+  window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
 // === TOAST ===
@@ -452,7 +466,9 @@ function renderShiftHistory() {
   shiftsToShow.sort((a, b) => new Date(b.date) - new Date(a.date));
 
   if (!shiftsToShow.length) {
-    container.innerHTML = '<p class="empty-state">No shifts found. Log your first shift above.</p>';
+    container.innerHTML = filterDate
+      ? '<div class="empty-state"><strong>No shifts on this date</strong><p>Choose another date or clear the filter to see all your shifts.</p><button type="button" class="text-link" onclick="document.getElementById(\'shift-filter-date\').value = \'\'; renderShiftHistory()">Clear date filter</button></div>'
+      : '<div class="empty-state"><strong>Your first shift starts here</strong><p>Save your working hours using the shift form. Your records will appear here.</p><a class="text-link" href="#shift-date">Log your first shift →</a></div>';
     return;
   }
 
@@ -498,11 +514,11 @@ function renderShiftHistory() {
     return `
       <div class="shift-row">
         <div class="shift-date">${new Date(shift.date + 'T00:00:00').toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}</div>
-        <div class="time-range">${morningDisplay}</div>
-        <div class="time-range">${afternoonDisplay}</div>
-        <div class="time-range">${overtimeDisplay}</div>
+        <div class="time-range"><span class="session-label">Morning</span>${morningDisplay}</div>
+        <div class="time-range"><span class="session-label">Afternoon</span>${afternoonDisplay}</div>
+        <div class="time-range"><span class="session-label">Overtime</span>${overtimeDisplay}</div>
         <div class="total-hours"><strong>${(shift.total_hours || 0).toFixed(2)} hrs</strong></div>
-        ${shift.notes ? `<div class="shift-note-display">📝 ${shift.notes}</div>` : ''}
+        ${shift.notes ? `<div class="shift-note-display">${escapeShiftNote(shift.notes)}</div>` : ''}
         <div class="shift-actions">
           <button class="secondary-btn small-btn" onclick="editShift('${shift.id}')">Edit</button>
           <button class="secondary-btn small-btn danger-btn" onclick="deleteShift('${shift.id}')">Delete</button>
@@ -510,6 +526,12 @@ function renderShiftHistory() {
       </div>
     `;
   }).join('');
+}
+
+function escapeShiftNote(value) {
+  const text = document.createElement('span');
+  text.textContent = value;
+  return text.innerHTML;
 }
 
 async function editShift(shiftId) {
@@ -723,6 +745,8 @@ function switchChart(type) {
   const monthlyChart = document.getElementById('monthly-hours-chart');
   const weeklyBtn = document.getElementById('btn-weekly-chart');
   const monthlyBtn = document.getElementById('btn-monthly-chart');
+  weeklyBtn.setAttribute('aria-pressed', String(type === 'weekly'));
+  monthlyBtn.setAttribute('aria-pressed', String(type === 'monthly'));
 
   if (type === 'weekly') {
     weeklyChart.style.display = '';
@@ -821,7 +845,7 @@ function renderMonthlyChart() {
           const isWeekend = new Date(day.dateStr + 'T00:00:00').getDay() === 0 ||
                             new Date(day.dateStr + 'T00:00:00').getDay() === 6;
           return `
-            <div class="monthly-bar-col ${isToday ? 'is-today' : ''} ${isWeekend ? 'is-weekend' : ''}">
+            <div class="monthly-bar-col ${isToday ? 'is-today' : ''} ${isWeekend ? 'is-weekend' : ''}" role="img" aria-label="${day.dateStr}: ${day.hours.toFixed(1)} hours${isToday ? ', today' : ''}">
               <div class="monthly-bar-wrap">
                 <div class="monthly-bar-fill" style="height:${heightPct}%;"
                   title="${day.dateStr}: ${day.hours.toFixed(1)}h"></div>
@@ -851,6 +875,8 @@ function switchHistoryView(type) {
   const monthlyView = document.getElementById('monthly-summary');
   const dailyBtn = document.getElementById('btn-daily-view');
   const monthlyBtn = document.getElementById('btn-monthly-view');
+  dailyBtn.setAttribute('aria-pressed', String(type === 'daily'));
+  monthlyBtn.setAttribute('aria-pressed', String(type === 'monthly'));
 
   if (type === 'daily') {
     dailyView.style.display = '';
@@ -1225,18 +1251,51 @@ function updateAvatarDisplay() {
 }
 
 // === DTR MODAL ===
+let dtrReturnFocus = null;
+
+function handleDTRKeys(event) {
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    closeDTRModal();
+  }
+  if (event.key !== 'Tab') return;
+  const controls = [...document.querySelectorAll('#dtr-modal button, #dtr-modal input')]
+    .filter(el => !el.disabled && el.getClientRects().length);
+  const first = controls[0];
+  const last = controls[controls.length - 1];
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last?.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first?.focus();
+  }
+}
+
 function openDTRModal() {
   const modal = document.getElementById('dtr-modal');
-  if (modal) modal.style.display = 'grid';
+  if (!modal) return;
+  dtrReturnFocus = document.activeElement;
+  modal.style.display = 'grid';
+  document.getElementById('main-content-container').inert = true;
+  document.getElementById('topbar-container').inert = true;
+  document.body.style.overflow = 'hidden';
+  document.addEventListener('keydown', handleDTRKeys);
   const nameInput = document.getElementById('dtr-full-name');
   if (nameInput && currentUser?.fullName) nameInput.value = currentUser.fullName;
+  nameInput?.focus();
 }
 
 function closeDTRModal() {
   const modal = document.getElementById('dtr-modal');
   if (modal) modal.style.display = 'none';
+  document.getElementById('main-content-container').inert = false;
+  document.getElementById('topbar-container').inert = false;
+  document.body.style.overflow = '';
+  document.removeEventListener('keydown', handleDTRKeys);
   document.getElementById('dtr-form')?.reset();
   toggleSignatureSection(false);
+  dtrReturnFocus?.focus();
 }
 
 function toggleSignatureSection(show) {
@@ -1674,16 +1733,18 @@ async function initializeApp() {
   // ===== CHECK IF USER ARRIVED FROM PASSWORD RESET EMAIL =====
   const urlParams = new URLSearchParams(window.location.search);
   const isReset = urlParams.get('reset') === 'true';
-  const hashParams = new URLSearchParams(window.location.hash.replace('#', '?'));
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
   const accessToken = hashParams.get('access_token');
   const type = hashParams.get('type');
 
   if ((isReset || type === 'recovery') && accessToken) {
     // ===== SET SESSION FROM RESET LINK =====
-    await supabase.auth.setSession({
+    const { error } = await supabase.auth.setSession({
       access_token: accessToken,
       refresh_token: hashParams.get('refresh_token') || ''
     });
+    if (error) throw error;
+    await auth.init();
     showAuthUI('reset');
     setupEventListeners();
     return;
@@ -1728,4 +1789,4 @@ document.addEventListener('visibilitychange', () => {
   if (!document.hidden) refreshRewardDate();
 });
 
-document.addEventListener('DOMContentLoaded', initializeApp);
+document.addEventListener('DOMContentLoaded', () => Startup.run(initializeApp));

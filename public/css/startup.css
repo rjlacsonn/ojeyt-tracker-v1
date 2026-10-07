@@ -1,0 +1,12 @@
+body.app-loading { overflow: hidden; }
+body.app-loading > :not(#app-loader):not(script):not(noscript) { display: none !important; }
+.app-loader { position: fixed; inset: 0; z-index: 10000; display: grid; place-items: center; padding: 24px; background: var(--page, #fff); }
+.app-loader[hidden], #app-loader-retry[hidden], #app-loader-spinner[hidden] { display: none; }
+.app-loader-card { display: grid; justify-items: center; gap: 24px; max-width: 400px; text-align: center; }
+.app-loader-card .brand-lockup { margin: 0; }
+.app-loader-card p { color: var(--muted, #63718a); font-size: 14px; line-height: 1.7; }
+.app-loader-spinner { width: 40px; height: 40px; border: 3px solid var(--teal-soft, #e9fbf8); border-top-color: var(--teal, #15b8a6); border-radius: 50%; animation: startup-spin 0.8s linear infinite; }
+@keyframes startup-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .app-loader-spinner { animation: none; }
+}

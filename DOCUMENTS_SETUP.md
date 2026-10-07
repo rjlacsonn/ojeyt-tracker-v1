@@ -83,6 +83,18 @@ Requirements 1–3 and original blank templates were not supplied.
 - Submitted files are locked while Awaiting review.
 - Professors use Review to download files, approve them, or return them for revision.
   Returning a file requires feedback. Students select Refresh to see changes.
+- Review also shows a document progress card for every enrolled student, including
+  students who have not submitted anything. Each card shows requirements submitted,
+  awaiting review, returned for revision, and not submitted, plus approved requirements
+  out of 10 and completion percentage. Expand View requirement checklist for the
+  status of every requirement. Multiple attachments count as one requirement;
+  all submitted attachments must be approved for that requirement to count approved.
+  Student selection and name/email search filter the progress cards and file list.
+  The status filter affects individual files only. Approving or returning a file
+  refreshes the cards automatically. Past submissions remain accessible if a
+  student changes professors and are marked as previous submissions.
+  This uses the existing roster RPC and document permissions; no additional
+  database migration is required after the account and student-progress setup.
 - Returned files can be resubmitted or removed and replaced. A requirement is
   Approved only when all of its current attachments are approved.
 - Download retrieves an uploaded file; it is not a blank school form template.

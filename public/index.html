@@ -15,14 +15,29 @@
   <link rel="stylesheet" href="css/gamification.css" />
   <link rel="stylesheet" href="css/documents.css" />
   <link rel="stylesheet" href="css/accounts.css" />
+  <link rel="stylesheet" href="css/startup.css" />
+  <link rel="stylesheet" href="css/interface.css" />
 </head>
-<body>
+<body class="app-loading" aria-busy="true">
+
+  <div id="app-loader" class="app-loader">
+    <div class="app-loader-card">
+      <div class="brand-lockup"><span class="brand-mark" aria-hidden="true">O</span><span class="brand-name">OJeyT Tracker</span></div>
+      <span id="app-loader-spinner" class="app-loader-spinner" aria-hidden="true"></span>
+      <p id="app-loader-message" role="status" aria-live="polite">Loading your workspace…</p>
+      <button id="app-loader-retry" class="primary-btn" type="button" hidden>Reload page</button>
+      <noscript><p>Enable JavaScript to open OJeyT Tracker.</p></noscript>
+    </div>
+  </div>
+  <script src="js/startup.js"></script>
+
+  <a class="skip-link" href="#main-content-container">Skip to main content</a>
 
   <!-- ===== LOGIN PAGE ===== -->
-  <section id="page-login" class="page auth-page active" aria-label="Login">
+  <section id="page-login" class="page auth-page" aria-label="Login">
     <div class="auth-card">
       <div class="brand-lockup">
-        <span class="brand-mark">O</span>
+        <span class="brand-mark" aria-hidden="true">O</span>
         <span class="brand-name">OJeyT Tracker</span>
       </div>
       <div class="auth-heading">
@@ -45,8 +60,8 @@
       <p class="auth-switch">Forgot your password? <a href="#forgot" id="show-forgot">Reset it</a></p>
       <div class="registration-options">
         <p>New to OJeyT Tracker?</p>
-        <a href="#signup" id="show-signup">🎓 Register as a Student</a>
-        <a href="#signup-professor" id="show-professor-signup">👩‍🏫 Register as a Professor / Coordinator</a>
+        <a href="#signup" id="show-signup"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 9 10-5 10 5-10 5zM6 11v6c4 3 8 3 12 0v-6M22 9v7"/></svg> Register as a Student</a>
+        <a href="#signup-professor" id="show-professor-signup"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="12" height="12" rx="2"/><path d="M13 7h4M13 10h4M2 21v-2a5 5 0 0 1 10 0v2"/><circle cx="7" cy="10" r="3"/></svg> Register as a Professor / Coordinator</a>
       </div>
     </div>
   </section>
@@ -55,7 +70,7 @@
   <section id="page-signup" class="page auth-page" aria-label="Create Account">
     <div class="auth-card">
       <div class="brand-lockup">
-        <span class="brand-mark">O</span>
+        <span class="brand-mark" aria-hidden="true">O</span>
         <span class="brand-name">OJeyT Tracker</span>
       </div>
       <div class="auth-heading">
@@ -91,7 +106,7 @@
   <!-- ===== PROFESSOR REGISTRATION ===== -->
   <section id="page-signup-professor" class="page auth-page" aria-label="Professor or coordinator registration">
     <div class="auth-card">
-      <div class="brand-lockup"><span class="brand-mark">O</span><span class="brand-name">OJeyT Tracker</span></div>
+      <div class="brand-lockup"><span class="brand-mark" aria-hidden="true">O</span><span class="brand-name">OJeyT Tracker</span></div>
       <div class="auth-heading"><h1>Professor registration</h1><p>Create an account to coordinate OJT requirements and review student submissions.</p></div>
       <p class="professor-registration-note">Your professor account is active after registration. Share your coordinator code and approve your students before they access the tracker.</p>
       <form id="professor-signup-form" class="auth-form">
@@ -113,7 +128,7 @@
   <section id="page-forgot" class="page auth-page" aria-label="Reset Password">
     <div class="auth-card">
       <div class="brand-lockup">
-        <span class="brand-mark">O</span>
+        <span class="brand-mark" aria-hidden="true">O</span>
         <span class="brand-name">OJeyT Tracker</span>
       </div>
       <div class="auth-heading">
@@ -137,7 +152,7 @@
   <section id="page-reset" class="page auth-page" aria-label="Set New Password">
     <div class="auth-card">
       <div class="brand-lockup">
-        <span class="brand-mark">O</span>
+        <span class="brand-mark" aria-hidden="true">O</span>
         <span class="brand-name">OJeyT Tracker</span>
       </div>
       <div class="auth-heading">
@@ -163,36 +178,36 @@
   <header id="topbar-container" class="topbar" style="display:none;">
     <div class="topbar-inner">
       <button class="brand-button" type="button" onclick="navTo('dashboard')" aria-label="Go to dashboard">
-        <span class="brand-mark">O</span>
+        <span class="brand-mark" aria-hidden="true">O</span>
         <span class="brand-name">OJeyT Tracker</span>
       </button>
       <nav class="top-nav" aria-label="Primary navigation">
         <button class="nav-btn active" type="button" data-page="dashboard" onclick="navTo('dashboard')">
-          <span class="nav-icon">🏠</span><span>Dashboard</span>
+          <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg></span><span>Dashboard</span>
         </button>
         <button class="nav-btn" type="button" data-page="history" onclick="navTo('history')">
-          <span class="nav-icon">📋</span><span>History</span>
+          <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="14" height="16" rx="2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h6"/></svg></span><span>History</span>
         </button>
         <button class="nav-btn" type="button" data-page="documents" onclick="navTo('documents')">
-          <span class="nav-icon">📁</span><span>Documents</span>
+          <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span><span>Documents</span>
         </button>
         <button id="review-nav-btn" class="nav-btn" type="button" data-page="document-review" onclick="navTo('document-review')" hidden>
-          <span class="nav-icon">✅</span><span>Review</span>
+          <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="m7 12 3 3 7-7"/></svg></span><span>Review</span>
         </button>
         <button class="nav-btn" type="button" data-page="student-approvals" onclick="navTo('student-approvals')" hidden>
-          <span class="nav-icon">🎓</span><span>Students</span>
+          <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 9 10-5 10 5-10 5zM6 11v6c4 3 8 3 12 0v-6M22 9v7"/></svg></span><span>Students</span>
         </button>
         <button class="nav-btn" type="button" data-page="student-home" onclick="navTo('student-home')" hidden>
-          <span class="nav-icon">👤</span><span>Account</span>
+          <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span><span>Account</span>
         </button>
         <button class="nav-btn" type="button" data-page="professor-home" onclick="navTo('professor-home')" hidden>
-          <span class="nav-icon">👤</span><span>Account</span>
+          <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span><span>Account</span>
         </button>
         <button class="nav-btn" type="button" data-page="badges" onclick="navTo('badges')">
-          <span class="nav-icon">🏅</span><span>Badges</span>
+          <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="m8 14-1 8 5-3 5 3-1-8"/></svg></span><span>Badges</span>
         </button>
         <button class="nav-btn" type="button" data-page="settings" onclick="navTo('settings')">
-          <span class="nav-icon">⚙️</span><span>Settings</span>
+          <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 3-1 3-3 1-2 5 2 5 3 1 1 3h6l1-3 3-1 2-5-2-5-3-1-1-3z"/><circle cx="12" cy="12" r="3"/></svg></span><span>Settings</span>
         </button>
       </nav>
       <div class="account-cluster">
@@ -202,31 +217,35 @@
         <button class="logout-btn" type="button" onclick="logout()" aria-label="Log Out" title="Log Out">Log Out</button>
       </div>
     </div>
-  </header>
 
   <!-- OJT Progress Bar -->
   <div class="ojt-progress-bar-wrap" id="ojt-progress-bar-wrap" style="display:none;">
     <div class="ojt-progress-bar-fill" id="ojt-progress-bar-fill"></div>
   </div>
 
-  <main id="main-content-container" class="app-shell" style="display:none;">
+  </header>
+
+  <main id="main-content-container" tabindex="-1" class="app-shell" style="display:none;">
 
     <!-- ===== DASHBOARD ===== -->
     <section id="page-dashboard" class="page app-page" aria-label="Dashboard">
-      <div class="page-heading">
-        <h1 id="greeting-msg">Hello, User</h1>
-        <p>Ready to start your OJT session?</p>
+      <div class="page-heading dashboard-heading">
+        <div>
+          <p class="eyebrow">Your OJT workspace</p>
+          <h1 id="greeting-msg">Hello, User</h1>
+          <p>A little progress, every working day. Keep yours on track.</p>
+        </div>
+        <a class="primary-btn heading-action" href="#shift-date">Log a shift <span aria-hidden="true">↗</span></a>
       </div>
 
       <div class="dashboard-grid">
-        <div class="left-stack">
           <article class="panel progress-panel">
             <div class="panel-title">
-              <span class="teal-icon">📊</span>
+              <span class="teal-icon"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10h4v10M10 20V4h4v16M16 20v-7h4v7M2 20h20"/></svg></span>
               <span>Progress Overview</span>
             </div>
-            <div class="progress-ring" aria-label="OJT progress">
-              <svg viewBox="0 0 140 140" role="img">
+            <div class="progress-ring" role="group" aria-label="OJT progress">
+              <svg viewBox="0 0 140 140" aria-hidden="true">
                 <circle class="ring-track" cx="70" cy="70" r="58"></circle>
                 <circle id="progress-circle-fill" class="ring-fill" cx="70" cy="70" r="58"></circle>
               </svg>
@@ -237,17 +256,17 @@
             </div>
             <div class="mini-stats">
               <div>
-                <span>📅</span>
+                <span><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 11h18M8 15h2M14 15h2"/></svg></span>
                 <strong id="stat-total-days">0</strong>
                 <small>Days Worked</small>
               </div>
               <div>
-                <span>⏱️</span>
+                <span><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M9 2h6M12 2v3M12 9v5l3 2M18 6l2-2"/></svg></span>
                 <strong id="stat-total-hours">0h</strong>
                 <small>Total Hours</small>
               </div>
               <div>
-                <span>⏳</span>
+                <span><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12M6 21h12M7 3v4l5 5-5 5v4M17 3v4l-5 5 5 5v4"/></svg></span>
                 <strong id="hours-remaining">Not assigned</strong>
                 <small>Remaining</small>
               </div>
@@ -269,7 +288,7 @@
             </div>
 
             <div class="streak-row">
-              <span class="streak-icon">🔥</span>
+              <span class="streak-icon"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 5 7 6 7 12a7 7 0 0 1-14 0c0-3 2-5 4-7 0 3 1 4 2 4 2-2 2-5 1-9z"/></svg></span>
               <div class="streak-info">
                 <strong id="streak-count">0</strong>
                 <small>Day Streak</small>
@@ -289,8 +308,8 @@
 
             <!-- ===== CHART TOGGLE ===== -->
             <div class="chart-toggle-row">
-              <button class="chart-toggle-btn active" id="btn-weekly-chart" onclick="switchChart('weekly')">This Week</button>
-              <button class="chart-toggle-btn" id="btn-monthly-chart" onclick="switchChart('monthly')">This Month</button>
+              <button class="chart-toggle-btn active" id="btn-weekly-chart" aria-pressed="true" onclick="switchChart('weekly')">This Week</button>
+              <button class="chart-toggle-btn" id="btn-monthly-chart" aria-pressed="false" onclick="switchChart('monthly')">This Month</button>
             </div>
             <div id="weekly-hours-chart" class="weekly-chart"></div>
             <div id="monthly-hours-chart" class="weekly-chart" style="display:none;"></div>
@@ -298,12 +317,13 @@
 
           <article class="panel timer-panel">
             <div class="panel-title">
-              <span class="teal-icon">⏱️</span>
-              <span>Log OJT Shift</span>
+              <span class="teal-icon"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M9 2h6M12 2v3M12 9v5l3 2M18 6l2-2"/></svg></span>
+              <span>Log your shift</span>
             </div>
+            <p class="panel-description">Record your hours and what you accomplished.</p>
             <form id="shift-form" class="shift-form">
               <div class="field">
-                <label>Date</label>
+                <label for="shift-date">Date</label>
                 <input id="shift-date" type="date" required />
               </div>
 
@@ -311,11 +331,11 @@
                 <h4>Morning Session</h4>
                 <div class="time-fields">
                   <div class="field">
-                    <label>Clock In</label>
+                    <label for="morning-in">Clock In</label>
                     <input id="morning-in" type="time" value="08:00" required />
                   </div>
                   <div class="field">
-                    <label>Clock Out</label>
+                    <label for="morning-out">Clock Out</label>
                     <input id="morning-out" type="time" value="12:00" required />
                   </div>
                 </div>
@@ -326,11 +346,11 @@
                 <h4>Afternoon Session</h4>
                 <div class="time-fields">
                   <div class="field">
-                    <label>Clock In</label>
+                    <label for="afternoon-in">Clock In</label>
                     <input id="afternoon-in" type="time" value="13:00" required />
                   </div>
                   <div class="field">
-                    <label>Clock Out</label>
+                    <label for="afternoon-out">Clock Out</label>
                     <input id="afternoon-out" type="time" value="17:00" required />
                   </div>
                 </div>
@@ -341,11 +361,11 @@
                 <h4>Overtime (Optional)</h4>
                 <div class="time-fields">
                   <div class="field">
-                    <label>Start</label>
+                    <label for="overtime-start">Start</label>
                     <input id="overtime-start" type="time" placeholder="--:--" />
                   </div>
                   <div class="field">
-                    <label>End</label>
+                    <label for="overtime-end">End</label>
                     <input id="overtime-end" type="time" placeholder="--:--" />
                   </div>
                 </div>
@@ -365,15 +385,15 @@
               <button id="save-shift-btn" class="primary-btn" type="submit">Save Shift</button>
             </form>
           </article>
-        </div>
 
         <article class="panel recent-panel">
           <div class="panel-head">
             <div class="panel-title">
-              <span class="teal-icon">📋</span>
+              <span class="teal-icon"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="14" height="16" rx="2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h6"/></svg></span>
               <span>Shift History</span>
             </div>
             <div class="filter-controls">
+              <label class="filter-label" for="shift-filter-date">Filter by date</label>
               <input id="shift-filter-date" type="date" placeholder="Filter by date" />
             </div>
           </div>
@@ -401,25 +421,25 @@
         </div>
         <div class="history-export-controls">
           <div class="dtr-date-range">
-            <label class="dtr-range-label">From</label>
+            <label class="dtr-range-label" for="dtr-range-from">From</label>
             <input type="date" id="dtr-range-from" class="dtr-range-input" />
-            <label class="dtr-range-label">To</label>
+            <label class="dtr-range-label" for="dtr-range-to">To</label>
             <input type="date" id="dtr-range-to" class="dtr-range-input" />
           </div>
           <button id="export-history-btn" class="primary-btn dtr-export-btn" type="button" onclick="openDTRModal()">Save / Print DTR</button>
         </div>
       </div>
       <div class="history-stat-grid">
-        <article class="panel stat-panel"><span>📊</span><strong id="history-days">0</strong><small>Total Days</small></article>
-        <article class="panel stat-panel"><span>⏱️</span><strong id="history-hours">0h</strong><small>Total Hours</small></article>
-        <article class="panel stat-panel"><span>📈</span><strong id="history-average">0h</strong><small>Daily Avg</small></article>
-        <article class="panel stat-panel"><span>⚠️</span><strong id="history-short-days">0</strong><small>Short Days</small></article>
+        <article class="panel stat-panel"><span><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10h4v10M10 20V4h4v16M16 20v-7h4v7M2 20h20"/></svg></span><strong id="history-days">0</strong><small>Total Days</small></article>
+        <article class="panel stat-panel"><span><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M9 2h6M12 2v3M12 9v5l3 2M18 6l2-2"/></svg></span><strong id="history-hours">0h</strong><small>Total Hours</small></article>
+        <article class="panel stat-panel"><span><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18M7 15l5-5 4 3 5-7M17 6h4v4"/></svg></span><strong id="history-average">0h</strong><small>Daily Avg</small></article>
+        <article class="panel stat-panel"><span><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 10 18H2zM12 9v5M12 17h.01"/></svg></span><strong id="history-short-days">0</strong><small>Short Days</small></article>
       </div>
 
       <!-- ===== VIEW TOGGLE ===== -->
       <div class="history-view-toggle">
-        <button class="chart-toggle-btn active" id="btn-daily-view" onclick="switchHistoryView('daily')">Daily</button>
-        <button class="chart-toggle-btn" id="btn-monthly-view" onclick="switchHistoryView('monthly')">Monthly</button>
+        <button class="chart-toggle-btn active" id="btn-daily-view" aria-pressed="true" onclick="switchHistoryView('daily')">Daily</button>
+        <button class="chart-toggle-btn" id="btn-monthly-view" aria-pressed="false" onclick="switchHistoryView('monthly')">Monthly</button>
       </div>
 
       <article class="panel history-panel">
@@ -431,7 +451,7 @@
     <!-- ===== PROFESSOR ACCOUNT STATUS ===== -->
     <section id="page-professor-home" class="page app-page" aria-label="Professor account status">
       <article class="panel account-status-panel">
-        <span class="account-status-icon" aria-hidden="true">👩‍🏫</span>
+        <span class="account-status-icon" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="12" height="12" rx="2"/><path d="M13 7h4M13 10h4M2 21v-2a5 5 0 0 1 10 0v2"/><circle cx="7" cy="10" r="3"/></svg></span>
         <h1 id="professor-status-heading">Your professor account</h1>
         <p id="professor-status-message"></p>
         <p id="professor-status-institution" class="account-status-institution"></p>
@@ -490,14 +510,14 @@
       </div>
       <article class="panel settings-panel">
         <section class="settings-block">
-          <h2><span class="teal-icon">👤</span>Profile</h2>
+          <h2><span class="teal-icon"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span>Profile</h2>
           <div class="settings-card">
             <div class="profile-picture-section">
               <div class="profile-pic-container">
-                <div id="profile-pic-preview" class="profile-pic-preview" title="Click to change profile picture" onclick="document.getElementById('profile-pic-input').click()"></div>
+                <button type="button" id="profile-pic-preview" class="profile-pic-preview" aria-label="Change profile picture" onclick="document.getElementById('profile-pic-input').click()"></button>
                 <input id="profile-pic-input" type="file" accept="image/jpeg,image/png" style="display:none;" onchange="handleProfilePictureUpload(event)" />
                 <button id="change-pic-btn" class="change-pic-btn" type="button" onclick="document.getElementById('profile-pic-input').click()">
-                  📷 Upload Photo
+                  <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 5 2-2h4l2 2h4a2 2 0 0 1 2 2v12H2V7a2 2 0 0 1 2-2z"/><circle cx="12" cy="12" r="4"/></svg> Upload Photo
                 </button>
               </div>
               <div id="remove-pic-btn-container" class="remove-pic-btn-container" style="display:none;">
@@ -514,7 +534,7 @@
         </section>
 
         <section id="student-hours-settings" class="settings-block">
-          <h2><span class="teal-icon">🎯</span>OJT Requirements</h2>
+          <h2><span class="teal-icon"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span>OJT Requirements</h2>
           <div class="settings-card">
             <label class="field inline-field">
               <span>Required Hours <small>(target OJT hours)</small></span>
@@ -533,14 +553,14 @@
 
   </main>
 
-  <div id="toast-container" class="toast-container"></div>
+  <div id="toast-container" class="toast-container" role="status" aria-live="polite" aria-atomic="false"></div>
 
   <!-- ===== DTR MODAL ===== -->
-  <div id="dtr-modal" class="modal" style="display:none;">
+  <div id="dtr-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="dtr-title" style="display:none;">
     <div class="modal-overlay" onclick="closeDTRModal()"></div>
     <div class="modal-content dtr-modal-content">
       <button class="modal-close" onclick="closeDTRModal()" aria-label="Close">&times;</button>
-      <h2>Save / Print DTR</h2>
+      <h2 id="dtr-title">Save / Print DTR</h2>
       <form id="dtr-form" class="dtr-form">
         <label class="field">
           <span>Full Name</span>
@@ -578,9 +598,9 @@
           </label>
         </div>
         <div class="modal-actions">
-          <button type="button" class="export-btn print-btn" onclick="exportDTR('print')">🖨️ Print / PDF</button>
-          <button type="button" class="export-btn csv-btn" onclick="exportDTR('csv')">📊 CSV</button>
-          <button type="button" class="export-btn excel-btn" onclick="exportDTR('excel')">📗 Excel</button>
+          <button type="button" class="export-btn print-btn" onclick="exportDTR('print')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8V3h12v5M6 17H3V8h18v9h-3M6 14h12v7H6zM17 11h1"/></svg> Print / PDF</button>
+          <button type="button" class="export-btn csv-btn" onclick="exportDTR('csv')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10h4v10M10 20V4h4v16M16 20v-7h4v7M2 20h20"/></svg> CSV</button>
+          <button type="button" class="export-btn excel-btn" onclick="exportDTR('excel')"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h14v18H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM3 17h16M8 7h7M8 11h7"/></svg> Excel</button>
         </div>
       </form>
     </div>

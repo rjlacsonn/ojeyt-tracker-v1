@@ -7,16 +7,31 @@ class Auth {
     this.user = null;
     this.session = null;
     this.isAuthenticated = false;
-    this.init();
+    this.initializationPromise = null;
   }
 
-  async init() {
+  init() {
+    if (!this.initializationPromise) {
+      this.initializationPromise = this.restoreSession().catch(error => {
+        this.initializationPromise = null;
+        throw error;
+      });
+    }
+    return this.initializationPromise;
+  }
+
+  async restoreSession() {
     // ===== CHECK EXISTING SUPABASE SESSION =====
     const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) throw error;
     if (session) {
       this.user = session.user;
       this.session = session;
       this.isAuthenticated = true;
+    } else {
+      this.user = null;
+      this.session = null;
+      this.isAuthenticated = false;
     }
 
     // ===== LISTEN FOR AUTH STATE CHANGES =====

@@ -65,7 +65,23 @@
 .doc-review-form { margin-top: 18px; }
 .doc-review-form > label span { font-weight: 400; }
 .doc-review-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.doc-section-title { font-size: 18px; margin: 22px 0 10px; }
+#doc-review-progress { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+#doc-review-progress > .doc-error, #doc-review-progress > .doc-empty, #doc-review-progress > .doc-notice { grid-column: 1 / -1; }
+.doc-student-progress { padding: 22px; min-width: 0; }
+.doc-student-progress .doc-review-heading { flex-wrap: wrap; }
+.doc-student-progress h3 { font-size: 16px; }
+.doc-student-progress .doc-review-heading > strong { color: var(--teal-dark); font-size: 13px; }
+.doc-progress-track { height: 7px; border-radius: 8px; background: #e5edf2; overflow: hidden; }
+.doc-progress-track > span { display: block; height: 100%; border-radius: inherit; background: var(--teal); }
+.doc-progress-counts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 18px 0; }
+.doc-progress-counts dt { color: var(--muted); font-size: 12px; margin-bottom: 5px; }
+.doc-progress-counts dd { margin: 0; font-size: 18px; font-weight: 600; }
+.doc-student-progress summary { cursor: pointer; font-size: 12px; font-weight: 600; color: var(--teal-dark); }
+.doc-progress-checklist { list-style: none; margin: 12px 0 0; padding: 0; }
+.doc-progress-checklist li { display: flex; justify-content: space-between; align-items: center; gap: 12px; border-top: 1px solid #e5edf2; padding: 10px 0; font-size: 12px; line-height: 1.5; }
 @media (max-width: 980px) {
+  #doc-review-progress { grid-template-columns: minmax(0, 1fr); }
   .doc-recipient { align-items: stretch; flex-direction: column; gap: 16px; }
   .doc-connect-form { min-width: 0; }
 }

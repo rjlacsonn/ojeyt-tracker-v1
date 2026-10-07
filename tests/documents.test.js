@@ -51,6 +51,45 @@ function runTests() {
     const s = model.summary([{ requirement_id: 'work-pictures', status: 'approved' }, { requirement_id: 'work-pictures', status: 'approved' }]);
     assert(s.approved === 1 && s.uploaded === 1, 'Attachment count confused with requirement count');
   });
+  test('Review progress includes enrolled students with no submissions', () => {
+    const [s] = model.reviewSummary([{ student_id: 'student-a', full_name: 'Student', email: 's@example.edu' }], []);
+    assert(s.missing === 10 && s.approved === 0 && s.submitted === 0 && s.percent === 0, 'False progress for empty student');
+  });
+  test('Review progress counts requirements rather than attachments', () => {
+    const rows = [
+      { user_id: 'a', requirement_id: 'application', status: 'approved' },
+      { user_id: 'a', requirement_id: 'application', status: 'approved' },
+      { user_id: 'a', requirement_id: 'waiver', status: 'submitted' },
+      { user_id: 'a', requirement_id: 'certification', status: 'returned' },
+    ];
+    const [s] = model.reviewSummary([], rows);
+    assert(s.approved === 1 && s.percent === 10 && s.submitted === 3 && s.awaiting === 1 && s.returned === 1 && s.missing === 7, 'Wrong requirement progress');
+  });
+  test('Partially approved and returned attachments keep requirements incomplete', () => {
+    const [s] = model.reviewSummary([], [
+      { user_id: 'a', requirement_id: 'application', status: 'approved' },
+      { user_id: 'a', requirement_id: 'application', status: 'submitted' },
+      { user_id: 'a', requirement_id: 'waiver', status: 'submitted' },
+      { user_id: 'a', requirement_id: 'waiver', status: 'returned' },
+    ]);
+    assert(s.approved === 0 && s.awaiting === 1 && s.returned === 1 && s.missing === 8, 'Incomplete requirements counted approved');
+  });
+  test('Review progress excludes private drafts and unknown requirements', () => {
+    const [s] = model.reviewSummary([{ student_id: 'a' }], [
+      { user_id: 'a', requirement_id: 'application', status: 'draft' },
+      { user_id: 'a', requirement_id: 'unknown', status: 'approved' },
+    ]);
+    assert(s.missing === 10 && s.submitted === 0 && !s.files.length, 'Private or unknown files entered progress');
+  });
+  test('Student identities isolate progress even with duplicate names', () => {
+    const students = model.reviewSummary([{ student_id: 'a', full_name: 'Same name' }, { student_id: 'b', full_name: 'Same name' }],
+      [{ user_id: 'a', requirement_id: 'waiver', status: 'approved' }]);
+    assert(students.find(s => s.id === 'a').percent === 10 && students.find(s => s.id === 'b').percent === 0, 'Student progress mixed together');
+  });
+  test('Historical submissions stay visible and complete checklist reaches 100 percent', () => {
+    const [s] = model.reviewSummary([], model.items.map(item => ({ user_id: 'former-student', requirement_id: item.id, status: 'approved' })));
+    assert(!s.enrolled && s.percent === 100 && s.approved === 10 && s.missing === 0, 'Historical or completed progress lost');
+  });
   return passed;
 }
 module.exports = runTests;

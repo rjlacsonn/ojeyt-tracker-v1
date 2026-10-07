@@ -5,13 +5,14 @@ const source = fs.readFileSync(require('path').join(__dirname, '../public/js/doc
 function createApp(options = {}) {
   const elements = new Map();
   const element = id => {
-    if (!elements.has(id)) elements.set(id, { innerHTML: '', hidden: false, replaceChildren() { this.innerHTML = ''; } });
+    if (!elements.has(id)) elements.set(id, { innerHTML: '', hidden: false, listeners: {},
+      addEventListener(type, fn) { this.listeners[type] = fn; }, replaceChildren() { this.innerHTML = ''; } });
     return elements.get(id);
   };
   const user = { id: 'student-a' };
   const context = { is_coordinator: false, recipient_id: 'professor', recipient_name: 'Professor Test', ...options.context };
   const state = { rows: options.rows || [], calls: [], notices: [], registrationFails: false, uploadFails: false,
-    deleteStale: false, queryError: null, deferQuery: null };
+    deleteStale: false, queryError: null, deferQuery: null, students: options.students || [], rosterError: null };
   const storage = {
     async upload(path, file, config) { state.calls.push(['upload', path, config]); return { error: state.uploadFails ? { message: 'Storage full' } : null }; },
     async remove(paths) { state.calls.push(['storage-remove', paths]); return { error: null }; },
@@ -22,6 +23,7 @@ function createApp(options = {}) {
     async rpc(name, args) {
       state.calls.push([name, args]);
       if (name === 'ojt_document_context') return { data: { ...context }, error: null };
+      if (name === 'ojt_list_students') return { data: state.students, error: state.rosterError };
       if (name === 'ojt_join_coordinator') { context.recipient_id = 'professor'; context.recipient_name = 'Professor Test'; return { error: null }; }
       if (name === 'ojt_register_document') {
         if (state.registrationFails) return { error: { message: 'Metadata unavailable' } };
@@ -67,7 +69,7 @@ function createApp(options = {}) {
     let currentPage = 'documents';
     ${source}
     return { ...Documents, setPage(page) { currentPage = page; } };
-  `)(model, supabase, { getElementById: element, addEventListener() {} }, user,
+  `)(model, supabase, { getElementById: element, addEventListener(type, fn) { if (type === 'DOMContentLoaded') fn(); } }, user,
     { randomUUID: () => '00000000-0000-4000-8000-000000000001' }, msg => state.notices.push(msg), () => true, { error() {} });
   return { api, state, element, user };
 }
@@ -165,6 +167,57 @@ async function runTests() {
   await test('Loading errors stay visible instead of claiming a successful fetch', async () => {
     const a = await ready(); a.state.queryError = { message: 'Connection lost' }; await a.api.open();
     assert(a.element('documents-content').innerHTML.includes('Connection lost'), 'Loading error hidden');
+  });
+  const openReview = async options => {
+    const a = createApp({ ...options, context: { is_coordinator: true, coordinator_name: 'Professor', join_code: 'ABCDEF123456' } });
+    a.user.id = 'professor'; await a.api.initializeAccount(); a.api.setPage('document-review'); await a.api.openReview(); return a;
+  };
+  await test('Review shows all enrolled students including those with no files', async () => {
+    const a = await openReview({ students: [{ student_id: 'student-a', full_name: 'Student A' }, { student_id: 'student-b', full_name: 'Student B' }], rows: [row('approved')] });
+    const html = a.element('doc-review-progress').innerHTML;
+    assert(html.includes('Student A') && html.includes('Student B') && html.includes('1 / 10 approved · 10%') && html.includes('0 / 10 approved · 0%'), 'Student progress cards missing');
+    assert(html.includes('View requirement checklist') && html.includes('Not submitted'), 'Requirement checklist missing');
+  });
+  await test('Approval refreshes requirement progress immediately', async () => {
+    const a = await openReview({ rows: [row('submitted')] }); await a.api.review('file-a', 'approved', '');
+    assert(a.element('doc-review-progress').innerHTML.includes('1 / 10 approved · 10%'), 'Progress stale after approval');
+  });
+  await test('Returning a file updates needs-revision counts', async () => {
+    const a = await openReview({ rows: [row('submitted')] }); await a.api.review('file-a', 'returned', 'Add signature.');
+    assert(a.element('doc-review-progress').innerHTML.includes('<dt>Needs revision</dt><dd>1</dd>') && a.element('doc-review-progress').innerHTML.includes('0 / 10 approved'), 'Returned progress wrong');
+  });
+  await test('Student selection filters both summaries and submitted files', async () => {
+    const a = await openReview({ students: [{ student_id: 'student-a', full_name: 'Student A' }, { student_id: 'student-b', full_name: 'Student B' }],
+      rows: [row('submitted'), { ...row('submitted'), id: 'file-b', user_id: 'student-b', student_name: 'Student B' }] });
+    a.element('page-document-review').listeners.change({ target: { id: 'doc-review-student', value: 'student-b' } });
+    assert(!a.element('doc-review-list').innerHTML.includes('data-id="file-a"') && a.element('doc-review-list').innerHTML.includes('data-id="file-b"'), 'Student file filter failed');
+    assert(!a.element('doc-review-progress').innerHTML.includes('Student A') && a.element('doc-review-progress').innerHTML.includes('Student B'), 'Student progress filter failed');
+  });
+  await test('Status filtering does not hide overall requirement progress', async () => {
+    const a = await openReview({ rows: [row('approved')] });
+    a.element('page-document-review').listeners.change({ target: { id: 'doc-review-filter', value: 'returned' } });
+    assert(a.element('doc-review-list').innerHTML.includes('No submissions match') && a.element('doc-review-progress').innerHTML.includes('1 / 10 approved'), 'Status filter altered progress');
+  });
+  await test('Search uses current student identity for both progress and file cards', async () => {
+    const a = await openReview({ students: [{ student_id: 'student-a', full_name: 'Renamed Student', email: 'new@example.edu' }], rows: [row('submitted')] });
+    a.element('page-document-review').listeners.input({ target: { id: 'doc-review-search', value: 'new@example.edu', matches: () => false } });
+    assert(a.element('doc-review-progress').innerHTML.includes('Renamed Student') && a.element('doc-review-list').innerHTML.includes('data-id="file-a"'), 'Current identity search lost submissions');
+  });
+  await test('Roster failure preserves submitted-file review and labels partial coverage', async () => {
+    const a = await openReview({ rows: [row('submitted')] }); a.state.rosterError = { message: 'Roster unavailable' }; await a.api.openReview();
+    assert(a.element('doc-review-progress').innerHTML.includes('Showing students with submissions only') && a.element('doc-review-list').innerHTML.includes('Return for revision'), 'Roster failure blocked reviews');
+  });
+  await test('Document fetch failure does not claim all requirements are missing', async () => {
+    const a = await openReview({ rows: [row('submitted')] }); a.state.queryError = { message: 'Connection lost' }; await a.api.openReview();
+    const html = a.element('doc-review-progress').innerHTML;
+    assert(html.includes('Document progress is unavailable') && !html.includes('0 / 10 approved'), 'Failed query displayed false progress');
+  });
+  await test('Student progress identities are escaped and reset removes previous cards', async () => {
+    const a = await openReview({ students: [{ student_id: 'student-a', full_name: '<script>unsafe</script>', email: '<img>' }], rows: [row('submitted')] });
+    assert(!a.element('doc-review-progress').innerHTML.includes('<script>') && !a.element('doc-review-progress').innerHTML.includes('<img>'), 'Unsafe student identity');
+    a.api.reset(); a.user.id = 'another-professor';
+    // In a real DOM replacing the parent removes its nested progress cards as well.
+    assert(a.element('document-review-content').innerHTML === '', 'Previous review page retained after logout');
   });
   return passed;
 }
