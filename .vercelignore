@@ -1,0 +1,11 @@
+# The deployed application is the static Supabase frontend in public/.
+server.js
+models/
+routes/
+utils/
+.env
+.env.*
+node_modules/
+*.log
+Microsoft/
+/*.mov
