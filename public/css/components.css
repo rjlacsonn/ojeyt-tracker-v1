@@ -1,0 +1,131 @@
+a {
+  color: inherit;
+}
+
+button,
+input {
+  transition:
+    border-color 0.2s var(--ease),
+    background 0.2s var(--ease),
+    color 0.2s var(--ease),
+    box-shadow 0.2s var(--ease),
+    transform 0.2s var(--ease);
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+button:disabled,
+button.is-loading {
+  cursor: wait;
+  opacity: 0.68;
+  transform: none;
+}
+
+button:disabled:hover,
+button.is-loading:hover {
+  transform: none;
+}
+
+button:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: 3px solid rgba(21, 184, 166, 0.22);
+  outline-offset: 3px;
+}
+
+/* ===== PROFILE PICTURE SECTION ===== */
+.profile-picture-section {
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profile-pic-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border: 2px dashed rgba(21, 184, 166, 0.3);
+  border-radius: 12px;
+  background: rgba(21, 184, 166, 0.05);
+  transition: all 0.2s ease;
+}
+
+.profile-pic-container:hover {
+  border-color: rgba(21, 184, 166, 0.5);
+  background: rgba(21, 184, 166, 0.1);
+}
+
+.profile-pic-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: var(--teal);
+  color: white;
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-shadow: 0 4px 12px rgba(21, 184, 166, 0.2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.profile-pic-preview:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(21, 184, 166, 0.3);
+}
+
+.profile-pic-preview.has-image {
+  font-size: 0;
+}
+
+.change-pic-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--teal);
+  border-radius: 6px;
+  background: white;
+  color: var(--teal);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.change-pic-btn:hover {
+  background: rgba(21, 184, 166, 0.05);
+}
+
+.remove-pic-btn-container {
+  display: flex;
+  justify-content: center;
+}
+
+.remove-pic-btn {
+  padding: 8px 16px;
+  border: 1px solid #ff4757;
+  border-radius: 6px;
+  background: white;
+  color: #ff4757;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.remove-pic-btn:hover {
+  background: rgba(255, 71, 87, 0.05);
+}
+

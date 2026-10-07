@@ -1,0 +1,68 @@
+{
+  "users": [
+    {
+      "id": "dac37f2a-10dd-481c-9186-8f7e0cbcbe79",
+      "fullName": "rj lacson",
+      "email": "aaron@gmail.com",
+      "password": "$2b$10$BpITxHhhVBsa4WpwTtShOeFpFgaT/zdYfZIGpyjivHZMnqQksXVTi",
+      "requiredHours": 200,
+      "officeLocation": {
+        "latitude": 14.5995,
+        "longitude": 120.9842,
+        "radius": 100
+      },
+      "autoCheckIn": true,
+      "createdAt": "2026-05-01T06:42:00.579Z",
+      "updatedAt": "2026-05-01T06:43:17.204Z"
+    },
+    {
+      "id": "a6a9c9a5-1817-4e77-8eb7-333f8c3ad3c2",
+      "fullName": "Danice Angelica Joy Pascua",
+      "email": "pascua.daniceangelicajoy@ue.edu.ph",
+      "password": "$2b$10$sS4etl0rB3rDeXbDcWCNgOCilRWjHJa44muAAwFZZK/IY3IGbid1S",
+      "requiredHours": 200,
+      "officeLocation": {
+        "latitude": 14.5995,
+        "longitude": 120.9842,
+        "radius": 100
+      },
+      "autoCheckIn": false,
+      "createdAt": "2026-05-01T06:46:46.715Z",
+      "updatedAt": "2026-05-01T06:46:46.715Z"
+    },
+    {
+      "id": "test-user-123",
+      "fullName": "Test User",
+      "email": "test@example.com",
+      "password": "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", 
+      "requiredHours": 200,
+      "officeLocation": {
+        "latitude": 14.5995,
+        "longitude": 120.9842,
+        "radius": 100
+      },
+      "autoCheckIn": false,
+      "createdAt": "2026-05-03T00:00:00.000Z",
+      "updatedAt": "2026-05-03T00:00:00.000Z"
+    }
+  ],
+  "sessions": [
+    {
+      "id": "83d024be-cd45-467e-ad7d-cb2e94bc5d80",
+      "duration": 65,
+      "createdAt": "2026-05-01T06:42:42.413Z",
+      "userId": "dac37f2a-10dd-481c-9186-8f7e0cbcbe79",
+      "startTime": "2026-05-01T06:42:42.412Z",
+      "checkInLocation": {
+        "latitude": 0,
+        "longitude": 0
+      },
+      "isActive": false,
+      "endTime": "2026-05-01T06:43:47.995Z",
+      "checkOutLocation": {
+        "latitude": 14.68232637461711,
+        "longitude": 121.11801889177049
+      }
+    }
+  ]
+}

@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="OJeyT Tracker - Track your OJT hours with ease" />
+  <title>OJeyT Tracker</title>
+  <link rel="icon" type="image/png" href="new-logo.png">
+  <link rel="stylesheet" href="css/reset.css" />
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/pages.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
+  <link rel="stylesheet" href="css/gamification.css" />
+  <link rel="stylesheet" href="css/documents.css" />
+  <link rel="stylesheet" href="css/accounts.css" />
+</head>
+<body>
+
+  <!-- ===== LOGIN PAGE ===== -->
+  <section id="page-login" class="page auth-page active" aria-label="Login">
+    <div class="auth-card">
+      <div class="brand-lockup">
+        <span class="brand-mark">O</span>
+        <span class="brand-name">OJeyT Tracker</span>
+      </div>
+      <div class="auth-heading">
+        <h1>Welcome back</h1>
+        <p>Sign in to your student or professor account.</p>
+      </div>
+      <form id="login-form" class="auth-form">
+        <label class="field">
+          <span>Email</span>
+          <input id="login-email" type="email" autocomplete="email" placeholder="you@example.com" required />
+        </label>
+        <label class="field">
+          <span>Password</span>
+          <input id="login-password" type="password" autocomplete="current-password" placeholder="Enter your password" required />
+        </label>
+        <p id="login-error" class="form-error" role="alert" aria-live="polite"></p>
+        <p id="login-info" class="form-success" role="status" aria-live="polite" style="display:none;"></p>
+        <button id="login-submit" class="primary-btn" type="submit">Sign In</button>
+      </form>
+      <p class="auth-switch">Forgot your password? <a href="#forgot" id="show-forgot">Reset it</a></p>
+      <div class="registration-options">
+        <p>New to OJeyT Tracker?</p>
+        <a href="#signup" id="show-signup">🎓 Register as a Student</a>
+        <a href="#signup-professor" id="show-professor-signup">👩‍🏫 Register as a Professor / Coordinator</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SIGNUP PAGE ===== -->
+  <section id="page-signup" class="page auth-page" aria-label="Create Account">
+    <div class="auth-card">
+      <div class="brand-lockup">
+        <span class="brand-mark">O</span>
+        <span class="brand-name">OJeyT Tracker</span>
+      </div>
+      <div class="auth-heading">
+        <h1>Student registration</h1>
+        <p>Create your account, then request your professor’s approval to track OJT hours and submit requirements.</p>
+      </div>
+      <form id="signup-form" class="auth-form">
+        <label class="field">
+          <span>Full Name</span>
+          <input id="signup-name" type="text" maxlength="160" autocomplete="name" placeholder="Your full name" required />
+        </label>
+        <label class="field">
+          <span>Email</span>
+          <input id="signup-email" type="email" autocomplete="email" placeholder="you@example.com" required />
+        </label>
+        <label class="field">
+          <span>Password</span>
+          <input id="signup-password" type="password" autocomplete="new-password" placeholder="At least 6 characters" required />
+        </label>
+        <label class="field">
+          <span>Confirm Password</span>
+          <input id="signup-confirm" type="password" autocomplete="new-password" placeholder="Re-enter password" required />
+        </label>
+        <p class="hint-text">Your professor or OJT coordinator will set your required OJT hours.</p>
+        <p id="signup-error" class="form-error" role="alert" aria-live="polite"></p>
+        <button id="signup-submit" class="primary-btn" type="submit">Create Student Account</button>
+      </form>
+      <p class="auth-switch">Already have an account? <a href="#login" id="show-login">Sign In</a></p>
+      <p class="auth-switch">Teaching or coordinating OJT? <a href="#signup-professor" id="student-to-professor-signup">Register as a professor</a></p>
+    </div>
+  </section>
+
+  <!-- ===== PROFESSOR REGISTRATION ===== -->
+  <section id="page-signup-professor" class="page auth-page" aria-label="Professor or coordinator registration">
+    <div class="auth-card">
+      <div class="brand-lockup"><span class="brand-mark">O</span><span class="brand-name">OJeyT Tracker</span></div>
+      <div class="auth-heading"><h1>Professor registration</h1><p>Create an account to coordinate OJT requirements and review student submissions.</p></div>
+      <p class="professor-registration-note">Your professor account is active after registration. Share your coordinator code and approve your students before they access the tracker.</p>
+      <form id="professor-signup-form" class="auth-form">
+        <label class="field"><span>Full Name</span><input id="professor-signup-name" type="text" autocomplete="name" maxlength="160" placeholder="Your full name" required /></label>
+        <label class="field"><span>School / Institution</span><input id="professor-signup-institution" type="text" autocomplete="organization" maxlength="160" placeholder="Your school or university" required /></label>
+        <label class="field"><span>Department / Office (optional)</span><input id="professor-signup-department" type="text" maxlength="160" placeholder="e.g. College of Computer Studies" /></label>
+        <label class="field"><span>Email</span><input id="professor-signup-email" type="email" autocomplete="email" placeholder="Your school email" required /></label>
+        <label class="field"><span>Password</span><input id="professor-signup-password" type="password" autocomplete="new-password" minlength="6" placeholder="At least 6 characters" required /></label>
+        <label class="field"><span>Confirm Password</span><input id="professor-signup-confirm" type="password" autocomplete="new-password" placeholder="Re-enter password" required /></label>
+        <p id="professor-signup-error" class="form-error" role="alert" aria-live="polite"></p>
+        <button id="professor-signup-submit" class="primary-btn" type="submit">Create Professor Account</button>
+      </form>
+      <p class="auth-switch">Already registered? <a href="#login" id="professor-show-login">Sign In</a></p>
+      <p class="auth-switch">Joining as a student? <a href="#signup" id="professor-to-student-signup">Student registration</a></p>
+    </div>
+  </section>
+
+  <!-- ===== FORGOT PASSWORD PAGE ===== -->
+  <section id="page-forgot" class="page auth-page" aria-label="Reset Password">
+    <div class="auth-card">
+      <div class="brand-lockup">
+        <span class="brand-mark">O</span>
+        <span class="brand-name">OJeyT Tracker</span>
+      </div>
+      <div class="auth-heading">
+        <h1>Reset password</h1>
+        <p>Enter your email and we'll send you a reset link.</p>
+      </div>
+      <form id="forgot-form" class="auth-form">
+        <label class="field">
+          <span>Email</span>
+          <input id="forgot-email" type="email" autocomplete="email" placeholder="you@example.com" required />
+        </label>
+        <p id="forgot-error" class="form-error" role="alert" aria-live="polite"></p>
+        <p id="forgot-success" class="form-success" role="status" aria-live="polite" style="display:none;"></p>
+        <button id="forgot-submit" class="primary-btn" type="submit">Send Reset Link</button>
+      </form>
+      <p class="auth-switch"><a href="#login" id="show-login-from-forgot">← Back to Sign In</a></p>
+    </div>
+  </section>
+
+  <!-- ===== RESET PASSWORD PAGE (after clicking email link) ===== -->
+  <section id="page-reset" class="page auth-page" aria-label="Set New Password">
+    <div class="auth-card">
+      <div class="brand-lockup">
+        <span class="brand-mark">O</span>
+        <span class="brand-name">OJeyT Tracker</span>
+      </div>
+      <div class="auth-heading">
+        <h1>Set new password</h1>
+        <p>Choose a strong password for your account.</p>
+      </div>
+      <form id="reset-form" class="auth-form">
+        <label class="field">
+          <span>New Password</span>
+          <input id="reset-password" type="password" autocomplete="new-password" placeholder="At least 6 characters" required />
+        </label>
+        <label class="field">
+          <span>Confirm New Password</span>
+          <input id="reset-confirm" type="password" autocomplete="new-password" placeholder="Re-enter new password" required />
+        </label>
+        <p id="reset-error" class="form-error" role="alert" aria-live="polite"></p>
+        <button id="reset-submit" class="primary-btn" type="submit">Update Password</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ===== TOP NAV ===== -->
+  <header id="topbar-container" class="topbar" style="display:none;">
+    <div class="topbar-inner">
+      <button class="brand-button" type="button" onclick="navTo('dashboard')" aria-label="Go to dashboard">
+        <span class="brand-mark">O</span>
+        <span class="brand-name">OJeyT Tracker</span>
+      </button>
+      <nav class="top-nav" aria-label="Primary navigation">
+        <button class="nav-btn active" type="button" data-page="dashboard" onclick="navTo('dashboard')">
+          <span class="nav-icon">🏠</span><span>Dashboard</span>
+        </button>
+        <button class="nav-btn" type="button" data-page="history" onclick="navTo('history')">
+          <span class="nav-icon">📋</span><span>History</span>
+        </button>
+        <button class="nav-btn" type="button" data-page="documents" onclick="navTo('documents')">
+          <span class="nav-icon">📁</span><span>Documents</span>
+        </button>
+        <button id="review-nav-btn" class="nav-btn" type="button" data-page="document-review" onclick="navTo('document-review')" hidden>
+          <span class="nav-icon">✅</span><span>Review</span>
+        </button>
+        <button class="nav-btn" type="button" data-page="student-approvals" onclick="navTo('student-approvals')" hidden>
+          <span class="nav-icon">🎓</span><span>Students</span>
+        </button>
+        <button class="nav-btn" type="button" data-page="student-home" onclick="navTo('student-home')" hidden>
+          <span class="nav-icon">👤</span><span>Account</span>
+        </button>
+        <button class="nav-btn" type="button" data-page="professor-home" onclick="navTo('professor-home')" hidden>
+          <span class="nav-icon">👤</span><span>Account</span>
+        </button>
+        <button class="nav-btn" type="button" data-page="badges" onclick="navTo('badges')">
+          <span class="nav-icon">🏅</span><span>Badges</span>
+        </button>
+        <button class="nav-btn" type="button" data-page="settings" onclick="navTo('settings')">
+          <span class="nav-icon">⚙️</span><span>Settings</span>
+        </button>
+      </nav>
+      <div class="account-cluster">
+        <span id="user-avatar" class="user-avatar"></span>
+        <span id="user-email-short" class="account-email"></span>
+        <span id="account-role-label" class="account-role-label"></span>
+        <button class="logout-btn" type="button" onclick="logout()" aria-label="Log Out" title="Log Out">Log Out</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- OJT Progress Bar -->
+  <div class="ojt-progress-bar-wrap" id="ojt-progress-bar-wrap" style="display:none;">
+    <div class="ojt-progress-bar-fill" id="ojt-progress-bar-fill"></div>
+  </div>
+
+  <main id="main-content-container" class="app-shell" style="display:none;">
+
+    <!-- ===== DASHBOARD ===== -->
+    <section id="page-dashboard" class="page app-page" aria-label="Dashboard">
+      <div class="page-heading">
+        <h1 id="greeting-msg">Hello, User</h1>
+        <p>Ready to start your OJT session?</p>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="left-stack">
+          <article class="panel progress-panel">
+            <div class="panel-title">
+              <span class="teal-icon">📊</span>
+              <span>Progress Overview</span>
+            </div>
+            <div class="progress-ring" aria-label="OJT progress">
+              <svg viewBox="0 0 140 140" role="img">
+                <circle class="ring-track" cx="70" cy="70" r="58"></circle>
+                <circle id="progress-circle-fill" class="ring-fill" cx="70" cy="70" r="58"></circle>
+              </svg>
+              <div class="ring-center">
+                <strong id="progress-percent">Not assigned</strong>
+                <span id="hours-rendered">0 hrs logged</span>
+              </div>
+            </div>
+            <div class="mini-stats">
+              <div>
+                <span>📅</span>
+                <strong id="stat-total-days">0</strong>
+                <small>Days Worked</small>
+              </div>
+              <div>
+                <span>⏱️</span>
+                <strong id="stat-total-hours">0h</strong>
+                <small>Total Hours</small>
+              </div>
+              <div>
+                <span>⏳</span>
+                <strong id="hours-remaining">Not assigned</strong>
+                <small>Remaining</small>
+              </div>
+            </div>
+
+            <!-- ===== DAILY AVERAGE VS TARGET ===== -->
+            <div class="avg-target-row" id="avg-target-row" style="display:none;">
+              <div class="avg-target-bar-wrap">
+                <div class="avg-target-labels">
+                  <span>Your avg: <strong id="avg-daily-display">0h</strong></span>
+                  <span>Target: <strong id="target-daily-display">0h</strong></span>
+                </div>
+                <div class="avg-target-track">
+                  <div class="avg-target-fill" id="avg-target-fill"></div>
+                  <div class="avg-target-marker" id="avg-target-marker"></div>
+                </div>
+                <div class="avg-target-status" id="avg-target-status"></div>
+              </div>
+            </div>
+
+            <div class="streak-row">
+              <span class="streak-icon">🔥</span>
+              <div class="streak-info">
+                <strong id="streak-count">0</strong>
+                <small>Day Streak</small>
+              </div>
+              <div class="streak-best">
+                <strong id="streak-best">0</strong>
+                <small>Best Streak</small>
+              </div>
+            </div>
+
+            <p class="streak-explainer">Streaks follow Monday–Friday. Weekends and dates in the project holiday calendar are rest days. Today stays open until midnight.</p>
+
+            <div class="estimated-finish-row">
+              <span>Estimated finish:</span>
+              <strong id="estimated-finish">Log more sessions to see your estimated finish date.</strong>
+            </div>
+
+            <!-- ===== CHART TOGGLE ===== -->
+            <div class="chart-toggle-row">
+              <button class="chart-toggle-btn active" id="btn-weekly-chart" onclick="switchChart('weekly')">This Week</button>
+              <button class="chart-toggle-btn" id="btn-monthly-chart" onclick="switchChart('monthly')">This Month</button>
+            </div>
+            <div id="weekly-hours-chart" class="weekly-chart"></div>
+            <div id="monthly-hours-chart" class="weekly-chart" style="display:none;"></div>
+          </article>
+
+          <article class="panel timer-panel">
+            <div class="panel-title">
+              <span class="teal-icon">⏱️</span>
+              <span>Log OJT Shift</span>
+            </div>
+            <form id="shift-form" class="shift-form">
+              <div class="field">
+                <label>Date</label>
+                <input id="shift-date" type="date" required />
+              </div>
+
+              <div class="shift-session">
+                <h4>Morning Session</h4>
+                <div class="time-fields">
+                  <div class="field">
+                    <label>Clock In</label>
+                    <input id="morning-in" type="time" value="08:00" required />
+                  </div>
+                  <div class="field">
+                    <label>Clock Out</label>
+                    <input id="morning-out" type="time" value="12:00" required />
+                  </div>
+                </div>
+                <div class="duration-display">Duration: <span id="morning-duration">4.00 hrs</span></div>
+              </div>
+
+              <div class="shift-session">
+                <h4>Afternoon Session</h4>
+                <div class="time-fields">
+                  <div class="field">
+                    <label>Clock In</label>
+                    <input id="afternoon-in" type="time" value="13:00" required />
+                  </div>
+                  <div class="field">
+                    <label>Clock Out</label>
+                    <input id="afternoon-out" type="time" value="17:00" required />
+                  </div>
+                </div>
+                <div class="duration-display">Duration: <span id="afternoon-duration">4.00 hrs</span></div>
+              </div>
+
+              <div class="shift-session">
+                <h4>Overtime (Optional)</h4>
+                <div class="time-fields">
+                  <div class="field">
+                    <label>Start</label>
+                    <input id="overtime-start" type="time" placeholder="--:--" />
+                  </div>
+                  <div class="field">
+                    <label>End</label>
+                    <input id="overtime-end" type="time" placeholder="--:--" />
+                  </div>
+                </div>
+                <div class="duration-display">Duration: <span id="overtime-duration">0.00 hrs</span></div>
+              </div>
+
+              <!-- ===== SHIFT NOTES ===== -->
+              <div class="shift-notes-field">
+                <label class="shift-notes-label" for="shift-notes">Accomplishment / Notes <span class="optional-tag">(optional)</span></label>
+                <textarea id="shift-notes" class="shift-notes-input" placeholder="e.g. Worked on inventory module, attended team meeting..." rows="2"></textarea>
+              </div>
+
+              <div class="total-duration">
+                <strong>Total Shift Duration: <span id="total-duration">8.00 hours</span></strong>
+              </div>
+
+              <button id="save-shift-btn" class="primary-btn" type="submit">Save Shift</button>
+            </form>
+          </article>
+        </div>
+
+        <article class="panel recent-panel">
+          <div class="panel-head">
+            <div class="panel-title">
+              <span class="teal-icon">📋</span>
+              <span>Shift History</span>
+            </div>
+            <div class="filter-controls">
+              <input id="shift-filter-date" type="date" placeholder="Filter by date" />
+            </div>
+          </div>
+          <div id="shift-history-table" class="shift-history-table">
+            <div class="table-header">
+              <div>Date</div>
+              <div>Morning</div>
+              <div>Afternoon</div>
+              <div>Overtime</div>
+              <div>Total</div>
+              <div>Actions</div>
+            </div>
+            <div id="shift-history-body" class="table-body"></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===== HISTORY PAGE ===== -->
+    <section id="page-history" class="page app-page" aria-label="Session History">
+      <div class="page-heading">
+        <div>
+          <h1>Session History</h1>
+          <p>Review all your check-in and check-out records</p>
+        </div>
+        <div class="history-export-controls">
+          <div class="dtr-date-range">
+            <label class="dtr-range-label">From</label>
+            <input type="date" id="dtr-range-from" class="dtr-range-input" />
+            <label class="dtr-range-label">To</label>
+            <input type="date" id="dtr-range-to" class="dtr-range-input" />
+          </div>
+          <button id="export-history-btn" class="primary-btn dtr-export-btn" type="button" onclick="openDTRModal()">Save / Print DTR</button>
+        </div>
+      </div>
+      <div class="history-stat-grid">
+        <article class="panel stat-panel"><span>📊</span><strong id="history-days">0</strong><small>Total Days</small></article>
+        <article class="panel stat-panel"><span>⏱️</span><strong id="history-hours">0h</strong><small>Total Hours</small></article>
+        <article class="panel stat-panel"><span>📈</span><strong id="history-average">0h</strong><small>Daily Avg</small></article>
+        <article class="panel stat-panel"><span>⚠️</span><strong id="history-short-days">0</strong><small>Short Days</small></article>
+      </div>
+
+      <!-- ===== VIEW TOGGLE ===== -->
+      <div class="history-view-toggle">
+        <button class="chart-toggle-btn active" id="btn-daily-view" onclick="switchHistoryView('daily')">Daily</button>
+        <button class="chart-toggle-btn" id="btn-monthly-view" onclick="switchHistoryView('monthly')">Monthly</button>
+      </div>
+
+      <article class="panel history-panel">
+        <div id="all-sessions" class="history-list"></div>
+        <div id="monthly-summary" class="monthly-summary-list" style="display:none;"></div>
+      </article>
+    </section>
+
+    <!-- ===== PROFESSOR ACCOUNT STATUS ===== -->
+    <section id="page-professor-home" class="page app-page" aria-label="Professor account status">
+      <article class="panel account-status-panel">
+        <span class="account-status-icon" aria-hidden="true">👩‍🏫</span>
+        <h1 id="professor-status-heading">Your professor account</h1>
+        <p id="professor-status-message"></p>
+        <p id="professor-status-institution" class="account-status-institution"></p>
+        <button class="primary-btn" type="button" id="refresh-account-access">Refresh account</button>
+      </article>
+    </section>
+    <section id="page-student-home" class="page app-page" aria-label="Student account approval">
+      <div id="student-approval-content"></div>
+    </section>
+    <section id="page-student-approvals" class="page app-page" aria-label="Manage student approvals">
+      <div class="page-heading"><div><h1>Your Students</h1><p>Approve student accounts and manage your OJT class.</p></div>
+        <button type="button" class="doc-button" data-enrollment-action="refresh">Refresh</button></div>
+      <div id="professor-students-content"></div>
+    </section>
+    <section id="page-account-unavailable" class="page app-page" aria-label="Account access unavailable">
+      <article class="panel account-status-panel"><h1 id="account-unavailable-heading">Account access unavailable</h1>
+        <p id="account-unavailable-message">We could not confirm your account access. Please retry or contact the project administrator.</p>
+        <button class="primary-btn" type="button" id="retry-account-access">Retry</button>
+      </article>
+    </section>
+
+    <!-- ===== DOCUMENT SUBMISSIONS ===== -->
+    <section id="page-documents" class="page app-page documents-page" aria-label="OJT document submissions">
+      <div class="page-heading">
+        <div><h1>OJT Documents</h1><p>Keep your requirements together and submit them to your coordinator.</p></div>
+        <button type="button" class="doc-button" data-doc-action="refresh">Refresh</button>
+      </div>
+      <div id="documents-content"></div>
+    </section>
+
+    <!-- ===== COORDINATOR REVIEW ===== -->
+    <section id="page-document-review" class="page app-page documents-page" aria-label="Review student documents">
+      <div class="page-heading">
+        <div><h1>Review Submissions</h1><p>Check student requirements and send clear feedback.</p></div>
+        <button type="button" class="doc-button" data-doc-action="refresh">Refresh</button>
+      </div>
+      <div id="document-review-content"></div>
+    </section>
+
+    <!-- ===== BADGES PAGE ===== -->
+    <section id="page-badges" class="page app-page" aria-label="Badges and achievements">
+      <div class="page-heading">
+        <div>
+          <h1>Badges &amp; Achievements</h1>
+          <p>Celebrate your milestones and follow your growth as an intern.</p>
+        </div>
+      </div>
+      <article id="gamification-panel" class="rewards-panel" aria-label="Your OJT achievements"></article>
+    </section>
+
+    <!-- ===== SETTINGS PAGE ===== -->
+    <section id="page-settings" class="page app-page settings-page" aria-label="Settings">
+      <div class="page-heading">
+        <h1>Settings</h1>
+        <p>Configure your profile and OJT requirements</p>
+      </div>
+      <article class="panel settings-panel">
+        <section class="settings-block">
+          <h2><span class="teal-icon">👤</span>Profile</h2>
+          <div class="settings-card">
+            <div class="profile-picture-section">
+              <div class="profile-pic-container">
+                <div id="profile-pic-preview" class="profile-pic-preview" title="Click to change profile picture" onclick="document.getElementById('profile-pic-input').click()"></div>
+                <input id="profile-pic-input" type="file" accept="image/jpeg,image/png" style="display:none;" onchange="handleProfilePictureUpload(event)" />
+                <button id="change-pic-btn" class="change-pic-btn" type="button" onclick="document.getElementById('profile-pic-input').click()">
+                  📷 Upload Photo
+                </button>
+              </div>
+              <div id="remove-pic-btn-container" class="remove-pic-btn-container" style="display:none;">
+                <button id="remove-pic-btn" class="remove-pic-btn" type="button" onclick="removeProfilePicture()">
+                  ✕ Remove Photo
+                </button>
+              </div>
+            </div>
+            <label class="field">
+              <span>Your Name</span>
+              <input id="settings-name-input" type="text" placeholder="Your name" />
+            </label>
+          </div>
+        </section>
+
+        <section id="student-hours-settings" class="settings-block">
+          <h2><span class="teal-icon">🎯</span>OJT Requirements</h2>
+          <div class="settings-card">
+            <label class="field inline-field">
+              <span>Required Hours <small>(target OJT hours)</small></span>
+              <span class="input-suffix">
+                <input id="required-hours" type="number" placeholder="Not assigned" readonly aria-readonly="true" />
+                <em>hours</em>
+              </span>
+            </label>
+            <p class="hint">Your professor or OJT coordinator manages this target. Contact them if it needs to change.</p>
+          </div>
+        </section>
+
+        <button id="save-settings-btn" class="primary-btn save-btn" type="button" onclick="saveSettings()">▣ Save Changes</button>
+      </article>
+    </section>
+
+  </main>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- ===== DTR MODAL ===== -->
+  <div id="dtr-modal" class="modal" style="display:none;">
+    <div class="modal-overlay" onclick="closeDTRModal()"></div>
+    <div class="modal-content dtr-modal-content">
+      <button class="modal-close" onclick="closeDTRModal()" aria-label="Close">&times;</button>
+      <h2>Save / Print DTR</h2>
+      <form id="dtr-form" class="dtr-form">
+        <label class="field">
+          <span>Full Name</span>
+          <input id="dtr-full-name" type="text" placeholder="e.g. Juan Dela Cruz" required />
+        </label>
+        <label class="field">
+          <span>School / University</span>
+          <input id="dtr-school" type="text" placeholder="e.g. University of the East" required />
+        </label>
+        <label class="field">
+          <span>Department / Course</span>
+          <input id="dtr-department" type="text" placeholder="e.g. CCSS / BSCS" required />
+        </label>
+        <label class="field">
+          <span>Company / Organization</span>
+          <input id="dtr-company" type="text" placeholder="e.g. Accenture" required />
+        </label>
+        <label class="field">
+          <span>Position / Role</span>
+          <input id="dtr-position" type="text" placeholder="e.g. CS Intern" required />
+        </label>
+        <label class="toggle-row">
+          <input id="dtr-include-signature" type="checkbox" />
+          <span>Include signature section</span>
+        </label>
+        <div id="signature-section" class="signature-section" style="display:none;">
+          <p class="hint">The intern fills this in — the supervisor only needs to sign the printed copy.</p>
+          <label class="field">
+            <span>Supervisor / Manager Name</span>
+            <input id="dtr-supervisor-name" type="text" placeholder="e.g. Maria Santos" />
+          </label>
+          <label class="field">
+            <span>Supervisor Position / Title</span>
+            <input id="dtr-supervisor-title" type="text" placeholder="e.g. OJT Coordinator / IT Manager" />
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="export-btn print-btn" onclick="exportDTR('print')">🖨️ Print / PDF</button>
+          <button type="button" class="export-btn csv-btn" onclick="exportDTR('csv')">📊 CSV</button>
+          <button type="button" class="export-btn excel-btn" onclick="exportDTR('excel')">📗 Excel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/account-access.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/calendar.js"></script>
+  <script src="js/gamification.js"></script>
+  <script src="js/gamification-ui.js"></script>
+  <script src="js/documents-model.js"></script>
+  <script src="js/documents.js"></script>
+  <script src="js/enrollment.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
