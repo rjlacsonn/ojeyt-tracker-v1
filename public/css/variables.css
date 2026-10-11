@@ -7,13 +7,13 @@
   --ink: #162b35;
   --muted: #526570;
   --soft: #5e707a;
-  --line: #dce5e8;
+  --line: #dce7e4;
   --panel: #ffffff;
   --card: #ffffff;
-  --page: #f3f7f6;
+  --page: #f4f8f7;
   --warning: #fff8df;
   --warning-text: #a16100;
-  --shadow: 0 4px 20px rgba(22, 43, 53, 0.035);
+  --shadow: 0 2px 4px rgba(22, 43, 53, 0.025), 0 10px 28px rgba(22, 43, 53, 0.045);
   --radius: 18px;
   --radius-sm: 12px;
   --ease: cubic-bezier(0.4, 0, 0.2, 1);

@@ -1,31 +1,34 @@
-# OJeyT Tracker UI review
+# October 7 UI restoration and teal polish
 
-Reviewed and improved using the installed UI/UX Pro Max skill. The application uses plain HTML, CSS, and JavaScript; the improvements keep that structure and the existing teal identity.
+GitHub main was checked with `git ls-remote` and points to `031e013d92fc4e697066a8ac1ea89c4aacd8e171`, the October 7 commit. The project was restored to that commit before applying this visual pass using UI/UX Pro Max. The user selected “Keep teal and refine the original design.”
 
-## Findings and changes
+The discarded redesign is backed up at `/private/tmp/ojeyt-before-oct7-polish-20261011-144504.zip`, including source files, Git diff, and status. Move this archive to permanent storage to retain it beyond temporary-file cleanup.
 
-| Finding | Improvement |
-| --- | --- |
-| Shift entry sat below a large progress panel, while a narrow history table required horizontal scrolling on desktop. | Place progress and shift entry beside each other, then show history across the full width. Add a direct link to the date field for mobile users. |
-| White text on the original teal button color had a contrast ratio of 2.49:1. | Use a darker teal with 4.89:1 contrast against white. Strengthen muted text and input boundaries. |
-| Navigation competed with account details, and centered overflow could hide the first destination. | Wrap navigation onto a second row before it gets crowded; align its scrollable contents to the start and retain visible text labels. |
-| Structural emoji icons rendered differently across platforms. | Use a consistent set of local outline SVGs for navigation, dashboard, authentication, and settings. Hide decorative SVGs from screen readers. |
-| Shift time labels were not associated with their inputs. | Associate labels with inputs, use 16px input text, and enlarge key controls to at least 44px high. |
-| Mobile history lost the context provided by table headings. | Add session labels to mobile records and distinguish destructive actions visually. Keep notes below each record without displacing actions. |
-| Empty records and date-filter misses used the same message. | Provide distinct messages and a clear-filter action or a link to log the first shift. |
-| Selected navigation and chart controls exposed only visual states. | Add `aria-current` and `aria-pressed`, announce toasts, and provide a skip link and navigation focus management. |
-| The print/export dialog did not manage keyboard focus. | Name the dialog, keep background content inert while open, trap Tab/Shift+Tab, close on Escape, and restore focus to its trigger. |
-| The monthly chart's intrinsic width could stretch its card on phones. | Constrain its grid and flex columns; reduce visible date ticks on small screens while retaining accessible date/hour labels. |
+## Result
 
-Shared refinements live in `public/css/interface.css`, loaded after feature styles. Color and typography tokens live in `public/css/variables.css`. No additional frontend packages or remote font/icon dependencies were introduced.
+The original top navigation, progress ring, shift form, page structure, branding, and student/coordinator workflows are preserved. The restoration polish was limited to CSS and this report. The later activity-calendar change is described below.
+
+- Original teal identity with a softer background, subtle card shadows, and consistent borders.
+- Larger readable labels, supporting text, forms, document statuses, and coordinator controls; rem-based typography and browser font preferences are respected.
+- Stronger visual hierarchy through section headings, a restrained teal accent on shift entry, and quieter chart controls.
+- Consistent student approval cards, document summaries, file panels, and review forms.
+- Teal-aligned achievement styling and a softly tinted authentication background.
+- Mobile history records stack cleanly, document summaries become vertical, date filters fit narrow screens, and controls remain usable from small phones to wide desktops.
 
 ## Validation
 
-- All 121 existing checks passed across account registration, documents, document workflows, enrollment, gamification, hour settings, and startup.
-- Chrome browser checks used synthetic data and intercepted external requests; no live account was accessed or modified.
-- Login and dashboard layouts checked at 375, 768, 1024, and 1440px widths, plus landscape and enlarged text.
-- Checked the unassigned-hours state, empty history, date filter recovery, weekly/monthly selection, student/professor navigation, and keyboard access to the profile photo control.
-- Checked print/export dialog focus entry, forward/backward wrapping, Escape, background isolation, and focus restoration.
-- Checked reduced motion, JavaScript syntax, whitespace, and browser errors.
+- All 121 original project checks passed. Application JavaScript, HTML, and tests matched the October 7 commit at the end of the restoration pass.
+- Chrome previews used synthetic student/coordinator data and intercepted external requests; no live Supabase writes were performed.
+- Dashboard, history, documents, achievements, settings, student approvals, coordinator review, account pages, and all authentication pages passed layout checks at 320, 375, 768, 1024, 1440, and 1920px.
+- Checked weekly/monthly charts, landscape layout, enlarged text, unassigned hour targets, empty history, export focus entry, Escape, focus restoration, and browser errors.
+- `git diff --check` passed.
 
-Live Supabase operations and physical iOS/Android browser behavior were not exercised in this UI pass. Existing uncommitted document and startup work was preserved.
+Before/after screenshots are available in `/private/tmp/ojeyt-oct7-preview/`. Physical iOS/Android browsers and live database operations were not exercised. Changes have not been committed or pushed.
+
+## Shift logging activity calendar
+
+Replaced the dashboard weekly/monthly hours bars with a GitHub-style daily activity calendar. The user chose saving shift records as the activity source. Each day counts the creation timestamps of currently retained shift records, in Asia/Manila time; work dates, sign-ins, and edits do not add saves. Deleted records no longer contribute. Missing or invalid timestamps are excluded and disclosed, with no work-date fallback or invented history.
+
+The calendar offers rolling 365-day and 90-day views, five teal intensity levels (0, 1, 2, 3, 4+ saves), active-day/save totals, and time since the last new shift. Day buttons have date/count labels, click details, arrow-key navigation, Home/End, and a single roving tab stop. A contained horizontal region keeps the chart usable at narrow widths; 24px cells remain selectable on phones, and recent dates stay visible when resizing. No database migration or new dependency is needed. Existing save/delete refreshes update the calendar.
+
+Validation: all 133 project checks passed, including 12 new activity tests for backdated records, intensity, duplicate IDs, Manila midnight, missing timestamps, edits, future timestamps, inclusive ranges, week alignment, leap day, and old saves. Chrome checks passed at 320, 375, 768, 1024, 1440, and 1920px. Checked range selection, day selection by mouse/keyboard, refresh after a new save, empty/missing-timestamp states, initial/resize scrolling, landscape, enlarged text, export focus, other routes, and browser errors with synthetic data. Calendar screenshots are at `/private/tmp/ojeyt-oct7-preview/calendar-375.png` and `calendar-1440.png`.

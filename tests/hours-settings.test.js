@@ -29,11 +29,10 @@ async function runTests() {
       return elements.get(id);
     };
     const update = new Function('currentUser', 'allShifts', 'document', 'RING_CIRCUMFERENCE', 'getFirstName',
-      'calculateEstimatedFinish', 'updateAvgTargetIndicator', 'calculateStreak', 'renderMonthlyChart',
-      'renderWeeklyChart', 'renderShiftHistory', 'renderGamification', `${dashboardSource}\nreturn updateDashboard;`)(
+      'calculateEstimatedFinish', 'updateAvgTargetIndicator', 'calculateStreak', 'renderShiftActivity', 'renderShiftHistory', 'renderGamification', `${dashboardSource}\nreturn updateDashboard;`)(
         { accountType: 'student', accountStatus: 'active', fullName: 'Student', requiredHours: target }, [{ total_hours: 8, date: '2026-10-07' }],
         { getElementById: get }, 364.42, () => 'Student', () => new Date(), () => {}, () => ({ current: 1, best: 1 }),
-        () => {}, () => {}, () => {}, () => {});
+        () => {}, () => {}, () => {});
     update();
     if (target === null) {
       assert(get('progress-percent').textContent === 'Not assigned' && get('hours-remaining').textContent === 'Not assigned', 'Unassigned target displayed as a number');

@@ -723,13 +723,7 @@ function updateDashboard(celebrateRewards = false) {
   }
   if (streakBestEl) streakBestEl.textContent = streak.best;
 
-  // ===== REFRESH WHICHEVER CHART IS ACTIVE =====
-  const monthlyVisible = document.getElementById('monthly-hours-chart')?.style.display !== 'none';
-  if (monthlyVisible) {
-    renderMonthlyChart();
-  } else {
-    renderWeeklyChart();
-  }
+  renderShiftActivity();
   renderShiftHistory();
   renderGamification(celebrateRewards);
 }
@@ -739,128 +733,9 @@ function calculateStreak() {
   return Gamification.calculate(allShifts, currentUser?.requiredHours, new Date(), OJT_HOLIDAYS).streak;
 }
 
-// === CHART TOGGLE ===
-function switchChart(type) {
-  const weeklyChart = document.getElementById('weekly-hours-chart');
-  const monthlyChart = document.getElementById('monthly-hours-chart');
-  const weeklyBtn = document.getElementById('btn-weekly-chart');
-  const monthlyBtn = document.getElementById('btn-monthly-chart');
-  weeklyBtn.setAttribute('aria-pressed', String(type === 'weekly'));
-  monthlyBtn.setAttribute('aria-pressed', String(type === 'monthly'));
-
-  if (type === 'weekly') {
-    weeklyChart.style.display = '';
-    monthlyChart.style.display = 'none';
-    weeklyBtn.classList.add('active');
-    monthlyBtn.classList.remove('active');
-    renderWeeklyChart();
-  } else {
-    weeklyChart.style.display = 'none';
-    monthlyChart.style.display = '';
-    weeklyBtn.classList.remove('active');
-    monthlyBtn.classList.add('active');
-    renderMonthlyChart();
-  }
-}
-
-// === WEEKLY CHART ===
-function renderWeeklyChart() {
-  const container = document.getElementById('weekly-hours-chart');
-  if (!container) return;
-
-  const today = new Date();
-  const dayIndex = (today.getDay() + 6) % 7;
-  const monday = new Date(today);
-  monday.setDate(today.getDate() - dayIndex);
-  monday.setHours(0, 0, 0, 0);
-
-  const week = Array.from({ length: 7 }, (_, i) => {
-    const date = new Date(monday);
-    date.setDate(monday.getDate() + i);
-    // ===== USE LOCAL DATE STRING TO AVOID TIMEZONE ISSUES =====
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return {
-      label: date.toLocaleDateString([], { weekday: 'short' }),
-      dateStr: `${y}-${m}-${d}`,
-      hours: 0
-    };
-  });
-
-  allShifts.forEach(shift => {
-    const shiftDate = String(shift.date).slice(0, 10);
-    const day = week.find(d => d.dateStr === shiftDate);
-    if (day) day.hours += parseFloat(shift.total_hours) || 0;
-  });
-
-  const maxHours = Math.max(...week.map(d => d.hours), 1);
-
-  container.innerHTML = week.map(day => `
-    <div class="chart-row">
-      <span class="chart-label">${day.label}</span>
-      <div class="chart-bar">
-        <div class="chart-fill" style="width:${Math.round((day.hours / maxHours) * 100)}%"></div>
-      </div>
-      <span class="chart-value">${day.hours.toFixed(1)}h</span>
-    </div>
-  `).join('');
-}
-
-// === MONTHLY HOURS BAR CHART ===
-function renderMonthlyChart() {
-  const container = document.getElementById('monthly-hours-chart');
-  if (!container) return;
-
-  // ===== GET CURRENT MONTH DAYS =====
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-  // ===== BUILD DAYS ARRAY =====
-  const days = Array.from({ length: daysInMonth }, (_, i) => {
-    const d = i + 1;
-    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    return { day: d, dateStr, hours: 0 };
-  });
-
-  // ===== MATCH SHIFTS TO DAYS =====
-  allShifts.forEach(shift => {
-    const shiftDate = String(shift.date).slice(0, 10);
-    const day = days.find(d => d.dateStr === shiftDate);
-    if (day) day.hours += parseFloat(shift.total_hours) || 0;
-  });
-
-  const maxHours = Math.max(...days.map(d => d.hours), 1);
-  const todayStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-
-  // ===== RENDER BARS =====
-  container.innerHTML = `
-    <div class="monthly-chart-wrap">
-      <div class="monthly-bars">
-        ${days.map(day => {
-          const heightPct = Math.round((day.hours / maxHours) * 100);
-          const isToday = day.dateStr === todayStr;
-          const isWeekend = new Date(day.dateStr + 'T00:00:00').getDay() === 0 ||
-                            new Date(day.dateStr + 'T00:00:00').getDay() === 6;
-          return `
-            <div class="monthly-bar-col ${isToday ? 'is-today' : ''} ${isWeekend ? 'is-weekend' : ''}" role="img" aria-label="${day.dateStr}: ${day.hours.toFixed(1)} hours${isToday ? ', today' : ''}">
-              <div class="monthly-bar-wrap">
-                <div class="monthly-bar-fill" style="height:${heightPct}%;"
-                  title="${day.dateStr}: ${day.hours.toFixed(1)}h"></div>
-              </div>
-              <span class="monthly-bar-label">${day.day}</span>
-            </div>
-          `;
-        }).join('')}
-      </div>
-      <div class="monthly-chart-footer">
-        <span>Total this month: <strong>${days.reduce((s, d) => s + d.hours, 0).toFixed(1)}h</strong></span>
-        <span>Days logged: <strong>${days.filter(d => d.hours > 0).length}</strong></span>
-      </div>
-    </div>
-  `;
+// === SHIFT LOGGING ACTIVITY ===
+function renderShiftActivity() {
+  ShiftActivity.render(allShifts);
 }
 
 // === LATE & ABSENCE TRACKER ===

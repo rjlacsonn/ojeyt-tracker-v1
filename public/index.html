@@ -306,13 +306,12 @@
               <strong id="estimated-finish">Log more sessions to see your estimated finish date.</strong>
             </div>
 
-            <!-- ===== CHART TOGGLE ===== -->
-            <div class="chart-toggle-row">
-              <button class="chart-toggle-btn active" id="btn-weekly-chart" aria-pressed="true" onclick="switchChart('weekly')">This Week</button>
-              <button class="chart-toggle-btn" id="btn-monthly-chart" aria-pressed="false" onclick="switchChart('monthly')">This Month</button>
-            </div>
-            <div id="weekly-hours-chart" class="weekly-chart"></div>
-            <div id="monthly-hours-chart" class="weekly-chart" style="display:none;"></div>
+            <section class="shift-activity" aria-labelledby="shift-activity-title">
+              <div class="activity-heading"><h2 id="shift-activity-title">Shift logging activity</h2>
+                <label class="activity-period-label" for="activity-period">Period<select id="activity-period"><option value="365">Last 12 months</option><option value="90">Last 90 days</option></select></label>
+              </div>
+              <div id="shift-activity-calendar"></div>
+            </section>
           </article>
 
           <article class="panel timer-panel">
@@ -617,6 +616,7 @@
   <script src="js/documents-model.js"></script>
   <script src="js/documents.js"></script>
   <script src="js/enrollment.js"></script>
+  <script src="js/shift-activity.js"></script>
   <script src="js/app.js"></script>
 
 </body>
