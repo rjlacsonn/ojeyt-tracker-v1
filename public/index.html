@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="css/accounts.css" />
   <link rel="stylesheet" href="css/startup.css" />
   <link rel="stylesheet" href="css/interface.css" />
+  <link rel="stylesheet" href="css/auth-interface.css" />
 </head>
 <body class="app-loading" aria-busy="true">
 
@@ -33,6 +34,26 @@
 
   <a class="skip-link" href="#main-content-container">Skip to main content</a>
 
+  <aside class="auth-welcome" aria-label="Welcome to OJeyT Tracker">
+    <div class="brand-lockup"><span class="brand-mark" aria-hidden="true">O</span><span class="brand-name">OJeyT Tracker</span></div>
+    <div class="auth-welcome-message">
+      <p class="auth-kicker">A LITTLE PROGRESS, EVERY DAY</p>
+      <h2 id="auth-welcome-title">Your next chapter<br>starts here.</h2>
+      <p id="auth-welcome-description">From your first shift to your final requirement. Give your internship a little more clarity.</p>
+    </div>
+    <div class="auth-preview" aria-hidden="true">
+      <div class="auth-preview-back"></div>
+      <div class="auth-preview-card">
+        <div class="auth-preview-caption"><span class="auth-preview-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2" stroke-linecap="round"/></svg></span><span>Your OJT, at a glance</span><span class="auth-preview-dots">•••</span></div>
+        <strong>Every hour<br>takes you further.</strong>
+        <div class="auth-preview-track"><span></span></div>
+        <div class="auth-preview-checklist"><span><i>✓</i> Hours recorded</span><span><i>✓</i> Requirements organized</span><span><i>✓</i> Progress you can see</span></div>
+      </div>
+      <div class="auth-preview-chip"><span aria-hidden="true">✓</span> One day closer.</div>
+    </div>
+    <div class="auth-welcome-footer"><span class="auth-footer-mark" aria-hidden="true"></span><p>Built for students.<br>Connected to coordinators.</p></div>
+  </aside>
+
   <!-- ===== LOGIN PAGE ===== -->
   <section id="page-login" class="page auth-page" aria-label="Login">
     <div class="auth-card">
@@ -41,27 +62,26 @@
         <span class="brand-name">OJeyT Tracker</span>
       </div>
       <div class="auth-heading">
-        <h1>Welcome back</h1>
-        <p>Sign in to your student or professor account.</p>
+        <p class="auth-eyebrow">YOUR OJT WORKSPACE</p>
+        <h1>Welcome back.</h1>
+        <p>Sign in to your student or coordinator account.</p>
       </div>
       <form id="login-form" class="auth-form">
         <label class="field">
           <span>Email</span>
           <input id="login-email" type="email" autocomplete="email" placeholder="you@example.com" required />
         </label>
-        <label class="field">
-          <span>Password</span>
-          <input id="login-password" type="password" autocomplete="current-password" placeholder="Enter your password" required />
-        </label>
+        <div class="field"><label for="login-password">Password</label><div class="auth-password-control"><input id="login-password" type="password" autocomplete="current-password" placeholder="Enter your password" required /><button class="auth-password-toggle" type="button" data-password-for="login-password" data-field-label="password" aria-controls="login-password" aria-label="Show password" aria-pressed="false">Show</button></div></div>
+        <div class="auth-help-row"><a href="#forgot" id="show-forgot">Forgot your password?</a></div>
         <p id="login-error" class="form-error" role="alert" aria-live="polite"></p>
         <p id="login-info" class="form-success" role="status" aria-live="polite" style="display:none;"></p>
         <button id="login-submit" class="primary-btn" type="submit">Sign In</button>
       </form>
-      <p class="auth-switch">Forgot your password? <a href="#forgot" id="show-forgot">Reset it</a></p>
+
       <div class="registration-options">
         <p>New to OJeyT Tracker?</p>
-        <a href="#signup" id="show-signup"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 9 10-5 10 5-10 5zM6 11v6c4 3 8 3 12 0v-6M22 9v7"/></svg> Register as a Student</a>
-        <a href="#signup-professor" id="show-professor-signup"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="12" height="12" rx="2"/><path d="M13 7h4M13 10h4M2 21v-2a5 5 0 0 1 10 0v2"/><circle cx="7" cy="10" r="3"/></svg> Register as a Professor / Coordinator</a>
+        <a href="#signup" id="show-signup"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 9 10-5 10 5-10 5zM6 11v6c4 3 8 3 12 0v-6M22 9v7"/></svg><span><strong>I'm a student</strong><small>Track hours and requirements</small></span><span class="auth-role-arrow" aria-hidden="true">↗</span></a>
+        <a href="#signup-professor" id="show-professor-signup"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="12" height="12" rx="2"/><path d="M13 7h4M13 10h4M2 21v-2a5 5 0 0 1 10 0v2"/><circle cx="7" cy="10" r="3"/></svg><span><strong>I'm a coordinator</strong><small>Guide students and review documents</small></span><span class="auth-role-arrow" aria-hidden="true">↗</span></a>
       </div>
     </div>
   </section>
@@ -74,9 +94,11 @@
         <span class="brand-name">OJeyT Tracker</span>
       </div>
       <div class="auth-heading">
-        <h1>Student registration</h1>
+        <p class="auth-eyebrow">START YOUR JOURNEY</p>
+        <h1>Create your account.</h1>
         <p>Create your account, then request your professor’s approval to track OJT hours and submit requirements.</p>
       </div>
+      <nav class="auth-role-tabs" aria-label="Registration type"><span aria-current="page">Student</span><a href="#signup-professor" id="student-to-professor-signup">Coordinator</a></nav>
       <form id="signup-form" class="auth-form">
         <label class="field">
           <span>Full Name</span>
@@ -86,20 +108,14 @@
           <span>Email</span>
           <input id="signup-email" type="email" autocomplete="email" placeholder="you@example.com" required />
         </label>
-        <label class="field">
-          <span>Password</span>
-          <input id="signup-password" type="password" autocomplete="new-password" placeholder="At least 6 characters" required />
-        </label>
-        <label class="field">
-          <span>Confirm Password</span>
-          <input id="signup-confirm" type="password" autocomplete="new-password" placeholder="Re-enter password" required />
-        </label>
+        <div class="field"><label for="signup-password">Password</label><div class="auth-password-control"><input id="signup-password" type="password" autocomplete="new-password" placeholder="6+ characters" required /><button class="auth-password-toggle" type="button" data-password-for="signup-password" data-field-label="password" aria-controls="signup-password" aria-label="Show password" aria-pressed="false">Show</button></div></div>
+        <div class="field"><label for="signup-confirm">Confirm Password</label><div class="auth-password-control"><input id="signup-confirm" type="password" autocomplete="new-password" placeholder="Re-enter password" required /><button class="auth-password-toggle" type="button" data-password-for="signup-confirm" data-field-label="confirm password" aria-controls="signup-confirm" aria-label="Show confirm password" aria-pressed="false">Show</button></div></div>
         <p class="hint-text">Your professor or OJT coordinator will set your required OJT hours.</p>
         <p id="signup-error" class="form-error" role="alert" aria-live="polite"></p>
         <button id="signup-submit" class="primary-btn" type="submit">Create Student Account</button>
       </form>
       <p class="auth-switch">Already have an account? <a href="#login" id="show-login">Sign In</a></p>
-      <p class="auth-switch">Teaching or coordinating OJT? <a href="#signup-professor" id="student-to-professor-signup">Register as a professor</a></p>
+
     </div>
   </section>
 
@@ -107,20 +123,21 @@
   <section id="page-signup-professor" class="page auth-page" aria-label="Professor or coordinator registration">
     <div class="auth-card">
       <div class="brand-lockup"><span class="brand-mark" aria-hidden="true">O</span><span class="brand-name">OJeyT Tracker</span></div>
-      <div class="auth-heading"><h1>Professor registration</h1><p>Create an account to coordinate OJT requirements and review student submissions.</p></div>
-      <p class="professor-registration-note">Your professor account is active after registration. Share your coordinator code and approve your students before they access the tracker.</p>
+      <div class="auth-heading"><p class="auth-eyebrow">SUPPORT THE NEXT CHAPTER</p><h1>Bring your class together.</h1><p>Create your professor or coordinator account to manage students and review their requirements.</p></div>
+      <nav class="auth-role-tabs" aria-label="Registration type"><a href="#signup" id="professor-to-student-signup">Student</a><span aria-current="page">Coordinator</span></nav>
+      <p class="professor-registration-note">After registration, share your coordinator code and approve students to give them access to the tracker.</p>
       <form id="professor-signup-form" class="auth-form">
         <label class="field"><span>Full Name</span><input id="professor-signup-name" type="text" autocomplete="name" maxlength="160" placeholder="Your full name" required /></label>
         <label class="field"><span>School / Institution</span><input id="professor-signup-institution" type="text" autocomplete="organization" maxlength="160" placeholder="Your school or university" required /></label>
         <label class="field"><span>Department / Office (optional)</span><input id="professor-signup-department" type="text" maxlength="160" placeholder="e.g. College of Computer Studies" /></label>
         <label class="field"><span>Email</span><input id="professor-signup-email" type="email" autocomplete="email" placeholder="Your school email" required /></label>
-        <label class="field"><span>Password</span><input id="professor-signup-password" type="password" autocomplete="new-password" minlength="6" placeholder="At least 6 characters" required /></label>
-        <label class="field"><span>Confirm Password</span><input id="professor-signup-confirm" type="password" autocomplete="new-password" placeholder="Re-enter password" required /></label>
+        <div class="field"><label for="professor-signup-password">Password</label><div class="auth-password-control"><input id="professor-signup-password" type="password" autocomplete="new-password" minlength="6" placeholder="6+ characters" required /><button class="auth-password-toggle" type="button" data-password-for="professor-signup-password" data-field-label="password" aria-controls="professor-signup-password" aria-label="Show password" aria-pressed="false">Show</button></div></div>
+        <div class="field"><label for="professor-signup-confirm">Confirm Password</label><div class="auth-password-control"><input id="professor-signup-confirm" type="password" autocomplete="new-password" placeholder="Re-enter password" required /><button class="auth-password-toggle" type="button" data-password-for="professor-signup-confirm" data-field-label="confirm password" aria-controls="professor-signup-confirm" aria-label="Show confirm password" aria-pressed="false">Show</button></div></div>
         <p id="professor-signup-error" class="form-error" role="alert" aria-live="polite"></p>
-        <button id="professor-signup-submit" class="primary-btn" type="submit">Create Professor Account</button>
+        <button id="professor-signup-submit" class="primary-btn" type="submit">Create Coordinator Account</button>
       </form>
       <p class="auth-switch">Already registered? <a href="#login" id="professor-show-login">Sign In</a></p>
-      <p class="auth-switch">Joining as a student? <a href="#signup" id="professor-to-student-signup">Student registration</a></p>
+
     </div>
   </section>
 
@@ -160,14 +177,8 @@
         <p>Choose a strong password for your account.</p>
       </div>
       <form id="reset-form" class="auth-form">
-        <label class="field">
-          <span>New Password</span>
-          <input id="reset-password" type="password" autocomplete="new-password" placeholder="At least 6 characters" required />
-        </label>
-        <label class="field">
-          <span>Confirm New Password</span>
-          <input id="reset-confirm" type="password" autocomplete="new-password" placeholder="Re-enter new password" required />
-        </label>
+        <div class="field"><label for="reset-password">New Password</label><div class="auth-password-control"><input id="reset-password" type="password" autocomplete="new-password" placeholder="6+ characters" required /><button class="auth-password-toggle" type="button" data-password-for="reset-password" data-field-label="new password" aria-controls="reset-password" aria-label="Show new password" aria-pressed="false">Show</button></div></div>
+        <div class="field"><label for="reset-confirm">Confirm New Password</label><div class="auth-password-control"><input id="reset-confirm" type="password" autocomplete="new-password" placeholder="Re-enter new password" required /><button class="auth-password-toggle" type="button" data-password-for="reset-confirm" data-field-label="confirm new password" aria-controls="reset-confirm" aria-label="Show confirm new password" aria-pressed="false">Show</button></div></div>
         <p id="reset-error" class="form-error" role="alert" aria-live="polite"></p>
         <button id="reset-submit" class="primary-btn" type="submit">Update Password</button>
       </form>
@@ -617,6 +628,7 @@
   <script src="js/documents.js"></script>
   <script src="js/enrollment.js"></script>
   <script src="js/shift-activity.js"></script>
+  <script src="js/auth-interface.js"></script>
   <script src="js/app.js"></script>
 
 </body>

@@ -112,6 +112,7 @@ function showAuthUI(target = 'login') {
   const targetPage = document.getElementById(`page-${target}`);
   if (targetPage) targetPage.classList.add('active');
   currentPage = target;
+  window.AuthInterface?.sync(target);
 }
 
 async function showAppUI() {
