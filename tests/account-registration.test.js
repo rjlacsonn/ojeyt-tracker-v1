@@ -69,7 +69,7 @@ async function runTests() {
     const a = makeAuth(); const result = await a.auth.signup('Professor', 'professor@example.edu', 'password', 'password', undefined,
       { accountType: 'professor', institution: ' Test University ', department: ' Computing ' });
     const meta = a.calls[0][1].options.data;
-    assert(result.success && result.message.includes('approve students'), 'Professor activation message incorrect');
+    assert(result.success && result.message.includes('Share your code'), 'Professor activation message incorrect');
     assert(meta.account_type === 'professor' && meta.institution === 'Test University' && meta.department === 'Computing' && !meta.is_coordinator, 'Incorrect professor payload');
   });
   await test('Professor school is required before contacting signup service', async () => {

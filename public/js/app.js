@@ -168,7 +168,7 @@ function applyAccountNavigation() {
 
 function renderProfessorStatus() {
   document.getElementById('professor-status-heading').textContent = 'Your professor account is active';
-  document.getElementById('professor-status-message').textContent = 'Open Students to share your coordinator code and approve student accounts. Use Review to check their document submissions.';
+  document.getElementById('professor-status-message').textContent = 'Open Students to share your coordinator code and view connected students. Use Review to check their document submissions.';
   document.getElementById('professor-status-institution').textContent = [currentUser?.institution, currentUser?.department].filter(Boolean).join(' · ');
 }
 

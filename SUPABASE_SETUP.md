@@ -18,7 +18,11 @@ For instant signup/login inside the app, go to **Authentication > Providers > Em
 For document submissions and separate student/professor accounts, run the migrations
 in order: `supabase-documents-migration.sql`, `supabase-account-registration-migration.sql`,
 then `supabase-student-approval-migration.sql` and `supabase-professor-hours-migration.sql`.
-Apply `supabase-no-default-hours-migration.sql` last so students start with no hour target.
+Apply `supabase-no-default-hours-migration.sql` next so students start with no hour target.
 Then apply `supabase-student-progress-migration.sql` for the professor's progress summaries.
+Apply `supabase-short-coordinator-codes-migration.sql` afterward to replace long professor
+codes with six-character codes. Existing student connections are preserved.
+Then apply `supabase-auto-approve-code-migration.sql` so a valid professor code gives
+students immediate access and activates requests from the previous approval flow.
 Only professors allocate students' required hours. Professors activate automatically;
-students need their professor’s approval. See [DOCUMENTS_SETUP.md](DOCUMENTS_SETUP.md).
+students activate by entering a valid professor code. See [DOCUMENTS_SETUP.md](DOCUMENTS_SETUP.md).

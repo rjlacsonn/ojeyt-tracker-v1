@@ -3,7 +3,7 @@ window.AuthInterface = (() => {
   const messages = {
     login: ['Your next chapter starts here.', 'From your first shift to your final requirement. Give your internship a little more clarity.'],
     signup: ['Small steps. Real progress.', 'Keep your hours, accomplishments, and OJT requirements together as you build your experience.'],
-    'signup-professor': ['More clarity for every student.', 'One place to guide your class, approve students, and keep OJT requirements moving forward.'],
+    'signup-professor': ['More clarity for every student.', 'One place to guide your class, connect students, and keep OJT requirements moving forward.'],
     forgot: ['A fresh start is a click away.', 'Get back to your hours, your requirements, and the progress you have made.'],
     reset: ['Ready for your next step.', 'Set a new password and return to your OJT workspace.'],
   };

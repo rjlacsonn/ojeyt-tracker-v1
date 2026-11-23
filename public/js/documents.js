@@ -90,7 +90,7 @@ const Documents = (() => {
         <div><h2>Your OJT coordinator</h2><p>${context?.recipient_name ? `Connected to <strong>${esc(context.recipient_name)}</strong>.` : 'Enter the code shared by your professor or coordinator before submitting.'}</p></div>
         <form class="doc-connect-form">
           <label for="coordinator-code">Coordinator code</label>
-          <div class="doc-connect-controls"><input id="coordinator-code" name="code" type="text" minlength="8" maxlength="32" autocomplete="off" autocapitalize="characters" placeholder="Enter coordinator code" required ${busy ? 'disabled' : ''} />
+          <div class="doc-connect-controls"><input id="coordinator-code" name="code" type="text" minlength="6" maxlength="32" autocomplete="off" autocapitalize="characters" placeholder="Enter coordinator code" required ${busy ? 'disabled' : ''} />
           <button class="doc-button doc-button-primary" type="submit" ${busy || !context ? 'disabled' : ''}>${context?.recipient_id ? 'Change coordinator' : 'Connect'}</button></div>
         </form>
       </article>
@@ -313,14 +313,14 @@ const Documents = (() => {
   }
   async function connect(code) {
     const clean = code.trim().toUpperCase();
-    if (!/^[A-Z0-9]{8,32}$/.test(clean)) { errorMessage = 'Enter a valid coordinator code.'; render(); return; }
+    if (!/^[A-Z0-9]{6,32}$/.test(clean)) { errorMessage = 'Enter a valid coordinator code.'; render(); return; }
     let connected = false;
     const connectingUserId = currentUser?.id;
     await operate(async (userId, guard) => {
       const { error } = await supabase.rpc('ojt_join_coordinator', { p_code: clean });
       guard(); if (error) throw error;
       await identify(); guard(); connected = true;
-      showToast('Coordinator connected. Account access will refresh to check your professor’s approval.');
+      showToast('Coordinator connected. Your tracker is now active.');
     });
     if (connected && typeof Enrollment !== 'undefined') await Enrollment.refreshAccess(connectingUserId);
   }

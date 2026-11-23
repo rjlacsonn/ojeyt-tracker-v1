@@ -5,8 +5,8 @@ begin;
 create table if not exists public.ojt_coordinators (
   user_id uuid primary key references auth.users(id) on delete cascade,
   display_name text not null check (length(trim(display_name)) between 1 and 160),
-  join_code text not null unique default upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 12))
-    check (join_code ~ '^[A-Z0-9]{8,32}$'),
+  join_code text not null unique default upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 6))
+    check (join_code ~ '^[A-Z0-9]{6,32}$'),
   created_at timestamptz not null default now()
 );
 

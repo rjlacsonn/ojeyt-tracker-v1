@@ -115,8 +115,8 @@ async function runTests() {
     assert(!a.state.calls.some(c => c[0] === 'ojt_submit_documents'), 'Unassigned submission sent');
   });
   await test('Coordinator connection normalizes code', async () => {
-    const a = await ready({ context: { recipient_id: null } }); await a.api.connect(' abcdef123456 ');
-    assert(a.state.calls.some(c => c[0] === 'ojt_join_coordinator' && c[1].p_code === 'ABCDEF123456'), 'Code not normalized');
+    const a = await ready({ context: { recipient_id: null } }); await a.api.connect(' abc123 ');
+    assert(a.state.calls.some(c => c[0] === 'ojt_join_coordinator' && c[1].p_code === 'ABC123'), 'Code not normalized');
   });
   await test('Submit sends only editable records', async () => {
     const a = await ready({ rows: [row(), { ...row('approved'), id: 'approved' }] }); await a.api.submit();

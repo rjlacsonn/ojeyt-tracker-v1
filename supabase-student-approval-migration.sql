@@ -1,9 +1,16 @@
 -- Run AFTER supabase-account-registration-migration.sql.
--- Professors activate on registration. Students need approval from their chosen professor.
+-- Professors activate on registration. Students activate by entering a valid professor code.
 begin;
-alter table public.ojt_enrollments add column if not exists approval_status text not null default 'pending'
+alter table public.ojt_enrollments add column if not exists approval_status text not null default 'approved'
   check (approval_status in ('pending', 'approved'));
 alter table public.ojt_enrollments add column if not exists approved_at timestamptz;
+
+-- A valid coordinator code grants access immediately. Existing enrollment rows
+-- are activated as well, so nobody remains in the previous approval queue.
+alter table public.ojt_enrollments alter column approval_status set default 'approved';
+update public.ojt_enrollments
+set approval_status = 'approved', approved_at = coalesce(approved_at, now())
+where approval_status = 'pending';
 
 -- Activate existing professor registrations, including accounts previously waiting for approval.
 insert into public.ojt_coordinators (user_id, display_name)
@@ -61,10 +68,12 @@ begin
   if public.ojt_is_coordinator() then raise exception 'Professor accounts cannot enroll as students.'; end if;
   select user_id into recipient from public.ojt_coordinators where join_code = upper(trim(p_code));
   if recipient is null then raise exception 'Coordinator code not found.'; end if;
-  insert into public.ojt_enrollments (student_id, coordinator_id) values (auth.uid(), recipient)
+  insert into public.ojt_enrollments (student_id, coordinator_id, approval_status, approved_at)
+  values (auth.uid(), recipient, 'approved', now())
   on conflict (student_id) do update set coordinator_id = excluded.coordinator_id,
-    approval_status = case when ojt_enrollments.coordinator_id = excluded.coordinator_id then ojt_enrollments.approval_status else 'pending' end,
-    approved_at = case when ojt_enrollments.coordinator_id = excluded.coordinator_id then ojt_enrollments.approved_at else null end,
+    approval_status = 'approved',
+    approved_at = case when ojt_enrollments.coordinator_id = excluded.coordinator_id
+      then coalesce(ojt_enrollments.approved_at, now()) else now() end,
     created_at = case when ojt_enrollments.coordinator_id = excluded.coordinator_id then ojt_enrollments.created_at else now() end;
 end;
 $$;
@@ -92,7 +101,7 @@ begin
 end;
 $$;
 
--- Pending students can read their profile and request approval, but cannot use the tracker or files.
+-- Students who have not entered a valid code can read their profile but cannot use the tracker or files.
 drop policy if exists "Approved students use shifts" on public.shifts;
 create policy "Approved students use shifts" on public.shifts as restrictive for all to authenticated
   using (public.ojt_student_is_approved()) with check (public.ojt_student_is_approved());
@@ -113,7 +122,7 @@ create or replace function public.require_ojt_student_approval()
 returns trigger language plpgsql security definer set search_path = '' as $$
 begin
   if auth.uid() is not null and not public.ojt_is_coordinator() and not public.ojt_student_is_approved() then
-    raise exception 'Your professor must approve your student account before you can use this feature.';
+    raise exception 'Enter your professor''s coordinator code before using this feature.';
   end if;
   if tg_op = 'DELETE' then return old; end if;
   return new;

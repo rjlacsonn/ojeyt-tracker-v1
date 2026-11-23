@@ -93,7 +93,7 @@ class Auth {
       const needsEmailConfirmation = !data.session;
       return { success: true, needsEmailConfirmation,
         message: needsEmailConfirmation ? 'Check your email to confirm your account, then sign in.' :
-          accountType === 'professor' ? 'Professor account created. You can now approve students and review their submissions.' : 'Student account created. Connect to your professor and request approval.' };
+          accountType === 'professor' ? 'Professor account created. Share your code with students and review their submissions.' : 'Student account created. Enter your professor’s code to activate your tracker.' };
     } catch (error) {
       return { success: false, message: 'Signup failed: ' + error.message };
     }

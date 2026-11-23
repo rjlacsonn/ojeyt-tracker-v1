@@ -11,12 +11,16 @@ Run these files in the SQL Editor in this order:
 5. **`supabase-professor-hours-migration.sql`** (professor-managed hour allocations).
 6. **`supabase-no-default-hours-migration.sql`** (unassigned targets until professor allocation).
 7. **`supabase-student-progress-migration.sql`** (professor's student progress summaries).
+8. **`supabase-short-coordinator-codes-migration.sql`** (six-character professor codes).
+9. **`supabase-auto-approve-code-migration.sql`** (immediate access after a valid code).
 
-For a project already running the first three scripts, run steps 4–7. If step 6 is
-already installed, run only step 7. Step 4 activates
+For a project already running the first three scripts, run steps 4–9. If step 7 is
+already installed, run steps 8–9. If step 8 is already installed, run only step 9. Step 4 activates
 existing professor registrations, including accounts that were previously waiting
 for administrator approval. Existing student records, shifts, files, and coordinator
-codes are preserved. Existing student enrollments now require professor approval.
+connections are preserved. Step 8 assigns each professor a new six-character code;
+previously shared codes stop working, but already enrolled students remain connected.
+Step 9 activates existing pending enrollments and makes future valid code entries immediate.
 Refresh the browser and sign in again after the migration succeeds.
 
 If Students reports **"structure of query does not match function result type"**,
@@ -36,10 +40,11 @@ in the order above. The final migration also refreshes the Supabase API schema c
   school, optional department, email, and password. Professor accounts activate
   automatically. If Supabase email confirmation is enabled, confirm the email
   before signing in. There is no administrator approval step for professors.
-- **Student:** use the student registration form. After signing in,
-  enter the coordinator code shared by the professor and choose Request approval.
-- **Professor:** open Students to see the coordinator code, pending requests, and
-  approved students. Select Approve student for a request in your own class.
+- **Student:** use the student registration form. After signing in, enter the
+  coordinator code shared by the professor and choose Join professor. A valid code
+  activates the tracker immediately; there is no separate approval step.
+- **Professor:** open Students to see the coordinator code and every student who
+  joined with it. No manual account approval is required.
 - **Student progress:** each card shows assigned hours, logged hours, remaining
   hours, and completion percentage. Select Refresh to load updated records.
   Logged hours use the same saved shift totals as the student's dashboard.
@@ -49,27 +54,27 @@ in the order above. The final migration also refreshes the Supabase API schema c
   aggregate hours, without exposing individual shift details or notes.
 - **Required hours:** only the student's current professor or coordinator can allocate
   or change the target. In Students, enter a whole number from 1 to 10,000 and choose
-  Save hours. This works for pending and approved students. Students can view their
+  Save hours. Students can view their
   target in Settings; they cannot set it at signup or change it through the API.
-  New accounts start with no target and display Not assigned. The final migration
+  New accounts start with no target and display Not assigned. Step 6
   clears older targets that have no record of professor allocation; professors must
   set these again. It preserves shifts, logged hours, and subsequent professor
   allocations when rerun. Students refresh the
   browser to see updated progress, remaining hours, and badge calculations.
-- **Student:** choose Check approval status or sign in again. Approval unlocks
-  Dashboard, History, Documents, Badges, and Settings.
+- **Student:** after a valid code is accepted, Dashboard, History, Documents,
+  Badges, and Settings unlock immediately.
 
-A pending student can access the account approval page and profile settings only.
+An unconnected student can access the professor connection page and profile settings only.
 Professors have Students, Review, Account, and Settings. Their student tracking and
-badge screens remain hidden. Students cannot approve themselves or other students.
-Professors can approve only students who requested enrollment using their code.
+badge screens remain hidden. A student cannot access another professor without that
+professor's valid coordinator code.
 
 Account types are captured when an account is created; changing editable auth
 metadata later cannot turn an existing student account into a professor.
 
-Changing professor requires approval from the new professor. Re-entering the same
-professor code preserves existing approval. Past document submissions keep their
-original reviewer. Do not delete and recreate an account to change its approval state.
+Entering a different valid professor code changes the student's professor immediately.
+Past document submissions keep their original reviewer. Do not delete and recreate an
+account to change professors.
 
 ## Documents
 
@@ -104,21 +109,21 @@ Requirements 1–3 and original blank templates were not supplied.
 The private `ojt-documents` bucket stores files under student UUID folders.
 Authenticated downloads do not publish file URLs. Row-level security limits reads
 and writes, and database functions enforce enrollment, account approval, submission,
-review, and coordinator ownership. Pending students cannot read or write tracker
-records, upload files, or bypass approval through document registration RPCs.
-Students can still read and update their own profile while waiting for approval.
+review, and coordinator ownership. Unconnected students cannot read or write tracker
+records or upload files. Students can still read and update their own profile before
+entering a valid coordinator code.
 
 An upload with failed metadata registration attempts to clean up its unreferenced
 storage object. Submitted objects cannot be overwritten or deleted. Cleanup errors
 are reported and an administrator can remove unreferenced objects later in Storage.
 
 The app does not send email notifications or attachments to professors. Their
-Students and Review tabs are the approval and submission inboxes.
+Students and Review tabs are the connected-student and submission views.
 
 ## Troubleshooting
 
 If account access is unavailable, ensure every migration completed successfully,
-with the student progress migration applied last. `PGRST202` means a required
+with the auto-approve code migration applied last. `PGRST202` means a required
 function is unavailable in the API cache. The scripts refresh that cache. Select
 Retry or sign in again after setup. Existing accounts do not need to register again.
 If SQL Editor reports an error, resolve it before retrying the app.
@@ -136,6 +141,7 @@ node tests/gamification.test.js
 ```
 
 Client checks simulate Supabase. Also test with a real professor and two student
-accounts: confirm immediate professor access, isolated approval queues, blocked
-pending-student uploads/tracking, successful approval, and private drafts. Actual
+accounts: confirm immediate professor access, isolated student lists, immediate
+code-based student access, blocked unconnected-student uploads/tracking, and private
+drafts. Actual
 Supabase database and Storage permissions must be verified after migration.

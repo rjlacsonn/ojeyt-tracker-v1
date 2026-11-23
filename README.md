@@ -115,20 +115,23 @@ Students can upload requirements 4–13 in the **Documents** tab, connect to the
 coordinator by code, and submit private draft files for review. Professors
 have a **Review** tab to download, approve, or return files with feedback.
 See [DOCUMENTS_SETUP.md](DOCUMENTS_SETUP.md) for the required database migration,
-account setup, student approvals, upload limits, and workflow.
+account setup, code-based student access, upload limits, and workflow.
 
 The login page has separate student and professor registration forms. Professors
 activate automatically and start in **Students**, where they share their code and
-approve student accounts. Students wait for their professor’s approval before using
-the tracker or document submissions. Run `supabase-student-approval-migration.sql`
+view connected student accounts. Students receive immediate access after entering
+a valid professor code. Run `supabase-student-approval-migration.sql`
 after the account registration migration; it also activates existing professor accounts.
 Then run `supabase-professor-hours-migration.sql` so only each student's professor
 can allocate or change required OJT hours from Students. Students view their assigned
-target in Settings. Apply `supabase-no-default-hours-migration.sql` last: students
+target in Settings. Apply `supabase-no-default-hours-migration.sql` after the
+professor-hours migration: students
 start with no target until their professor allocates hours. Older targets without
 a professor allocation record are cleared and must be assigned again.
 Apply `supabase-student-progress-migration.sql` afterward to show each enrolled
 student's assigned, logged, and remaining hours plus completion in Students.
+Apply `supabase-auto-approve-code-migration.sql` last on existing databases to
+activate old pending requests and enable immediate access for future connections.
 Review also shows each student's document completion and a requirement checklist,
 including enrolled students with no submissions. Search or select a student to
 monitor their requirements and review files together.

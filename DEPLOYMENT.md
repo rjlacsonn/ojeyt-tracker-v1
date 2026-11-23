@@ -72,7 +72,7 @@ apply outstanding migrations in the order described in DOCUMENTS_SETUP.md.
 ## Verify the live site
 
 - Sign in as a professor and check Students and Review.
-- Register a student, request approval, then approve them as their professor.
+- Register a student, enter the professor's code, and confirm immediate tracker access.
 - Allocate required hours and check the student's progress after refreshing.
 - Upload and submit a document, then approve or return it in Review.
 - Test password reset and, if enabled, the signup confirmation email.
