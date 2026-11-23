@@ -193,6 +193,16 @@ async function runTests() {
     assert(!a.element('doc-review-list').innerHTML.includes('data-id="file-a"') && a.element('doc-review-list').innerHTML.includes('data-id="file-b"'), 'Student file filter failed');
     assert(!a.element('doc-review-progress').innerHTML.includes('Student A') && a.element('doc-review-progress').innerHTML.includes('Student B'), 'Student progress filter failed');
   });
+  await test('Files to review are grouped into designated student sections', async () => {
+    const a = await openReview({ students: [{ student_id: 'student-a', full_name: 'Student A', email: 'a@example.edu' },
+      { student_id: 'student-b', full_name: 'Student B', email: 'b@example.edu' }],
+      rows: [row('submitted'), { ...row('submitted'), id: 'file-a2', requirement_id: 'waiver' },
+        { ...row('submitted'), id: 'file-b', user_id: 'student-b', student_name: 'Student B', student_email: 'b@example.edu' }] });
+    const html = a.element('doc-review-list').innerHTML;
+    assert(html.includes('data-review-student="student-a"') && html.includes('data-review-student="student-b"'), 'Student review sections missing');
+    assert(html.includes('2 files · 2 awaiting review') && html.includes('1 file · 1 awaiting review'), 'Per-student file counts missing');
+    assert(html.indexOf('Student A') < html.indexOf('data-id="file-a"') && html.indexOf('Student B') < html.indexOf('data-id="file-b"'), 'Files not placed under student identity');
+  });
   await test('Status filtering does not hide overall requirement progress', async () => {
     const a = await openReview({ rows: [row('approved')] });
     a.element('page-document-review').listeners.change({ target: { id: 'doc-review-filter', value: 'returned' } });

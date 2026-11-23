@@ -56,7 +56,17 @@
 .doc-review-filters label { display: grid; gap: 8px; min-width: 200px; }
 #doc-review-list { display: grid; gap: 16px; }
 #doc-review-list > .doc-empty { padding: 24px; }
-.doc-review-card { padding: 22px; min-width: 0; }
+.doc-review-student-section { padding: 0; min-width: 0; overflow: hidden; }
+.doc-review-student-summary { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 20px 22px; cursor: pointer; list-style: none; background: #f8fbfc; }
+.doc-review-student-summary::-webkit-details-marker { display: none; }
+.doc-review-student-summary::after { content: '＋'; flex: 0 0 auto; color: var(--teal-dark); font-size: 18px; font-weight: 600; }
+.doc-review-student-section[open] > .doc-review-student-summary::after { content: '−'; }
+.doc-review-student-summary > span:first-child { display: grid; gap: 5px; min-width: 0; }
+.doc-review-student-summary strong { color: var(--ink); font-size: 15px; line-height: 1.4; }
+.doc-review-student-summary small { color: var(--muted); font-size: 12px; font-weight: 400; overflow-wrap: anywhere; }
+.doc-review-student-count { margin-left: auto; padding: 6px 10px; border-radius: 999px; background: var(--teal-soft); color: var(--teal-dark); font-size: 11px; font-weight: 600; white-space: nowrap; }
+.doc-review-student-files { display: grid; gap: 12px; padding: 16px; border-top: 1px solid #e5edf2; background: #f8fbfc; }
+.doc-review-card { padding: 20px; min-width: 0; border: 1px solid #dfe8ee; border-radius: 12px; background: #fff; }
 .doc-review-heading { display: flex; gap: 14px; justify-content: space-between; align-items: start; margin-bottom: 18px; }
 .doc-review-heading h2 { font-size: 16px; line-height: 1.5; }
 .doc-review-heading p { font-size: 12px; color: var(--muted); margin-top: 4px; overflow-wrap: anywhere; }
@@ -98,4 +108,7 @@
   .doc-connect-controls { flex-direction: column; }
   .doc-review-filters label { min-width: 0; width: 100%; }
   .doc-review-heading { flex-wrap: wrap; }
+  .doc-review-student-summary { align-items: flex-start; flex-wrap: wrap; padding: 16px; }
+  .doc-review-student-count { margin-left: 0; white-space: normal; }
+  .doc-review-student-files { padding: 10px; }
 }

@@ -13,14 +13,16 @@ Run these files in the SQL Editor in this order:
 7. **`supabase-student-progress-migration.sql`** (professor's student progress summaries).
 8. **`supabase-short-coordinator-codes-migration.sql`** (six-character professor codes).
 9. **`supabase-auto-approve-code-migration.sql`** (immediate access after a valid code).
+10. **`supabase-student-roster-management-migration.sql`** (search and completed-student archiving).
 
-For a project already running the first three scripts, run steps 4–9. If step 7 is
-already installed, run steps 8–9. If step 8 is already installed, run only step 9. Step 4 activates
+For a project already running the first three scripts, run steps 4–10. If step 9 is
+already installed, run only step 10. Step 4 activates
 existing professor registrations, including accounts that were previously waiting
 for administrator approval. Existing student records, shifts, files, and coordinator
 connections are preserved. Step 8 assigns each professor a new six-character code;
 previously shared codes stop working, but already enrolled students remain connected.
 Step 9 activates existing pending enrollments and makes future valid code entries immediate.
+Step 10 adds roster search data and safe removal controls for completed students.
 Refresh the browser and sign in again after the migration succeeds.
 
 If Students reports **"structure of query does not match function result type"**,
@@ -45,6 +47,14 @@ in the order above. The final migration also refreshes the Supabase API schema c
   activates the tracker immediately; there is no separate approval step.
 - **Professor:** open Students to see the coordinator code and every student who
   joined with it. No manual account approval is required.
+- **Roster management:** search connected students by name or email. A professor
+  sees OJT Complete only after all 10 document requirements are approved and the
+  student's logged hours reach the assigned target. Only then can the professor
+  remove that student card.
+  Clear completed roster is available only when every active student is complete.
+  Removal archives the enrollment and returns the student to the coordinator-code
+  screen. Tracker access remains blocked until the student enters a valid code again.
+  The student account, shifts, and document audit history are preserved.
 - **Student progress:** each card shows assigned hours, logged hours, remaining
   hours, and completion percentage. Select Refresh to load updated records.
   Logged hours use the same saved shift totals as the student's dashboard.
@@ -95,6 +105,8 @@ Requirements 1–3 and original blank templates were not supplied.
   status of every requirement. Multiple attachments count as one requirement;
   all submitted attachments must be approved for that requirement to count approved.
   Student selection and name/email search filter the progress cards and file list.
+  Files to review are grouped into collapsible sections by student, with the student's
+  name, email, file count, and awaiting-review count shown in each section header.
   The status filter affects individual files only. Approving or returning a file
   refreshes the cards automatically. Past submissions remain accessible if a
   student changes professors and are marked as previous submissions.
@@ -123,7 +135,7 @@ Students and Review tabs are the connected-student and submission views.
 ## Troubleshooting
 
 If account access is unavailable, ensure every migration completed successfully,
-with the auto-approve code migration applied last. `PGRST202` means a required
+with the student roster management migration applied last. `PGRST202` means a required
 function is unavailable in the API cache. The scripts refresh that cache. Select
 Retry or sign in again after setup. Existing accounts do not need to register again.
 If SQL Editor reports an error, resolve it before retrying the app.

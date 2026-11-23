@@ -146,22 +146,39 @@ const Documents = (() => {
     renderReviewProgress(students.filter(matchesStudent));
     const visible = reviews.filter(row => (reviewFilter === 'all' || row.status === reviewFilter) &&
       matchingIds.has(row.user_id));
-    list.innerHTML = visible.length ? visible.map(row => {
-      const requirement = model.items.find(item => item.id === row.requirement_id);
-      return `<article class="panel doc-review-card">
-        <div class="doc-review-heading"><div><h2>${esc(row.student_name || 'Student')}</h2><p>${esc(row.student_email)}</p></div>${statusTag(row.status)}</div>
-        <h3>${esc(requirement?.name || row.requirement_id)}</h3>
-        <p class="doc-review-filename">${esc(row.file_name)} · ${esc(model.sizeLabel(Number(row.file_size)))}</p>
-        <p class="doc-help">Submitted ${esc(timestamp(row.submitted_at))}</p>
-        <button type="button" class="doc-button" data-doc-action="download-review" data-id="${esc(row.id)}" ${busy ? 'disabled' : ''}>Download file</button>
-        ${feedback(row)}
-        ${row.status === 'submitted' ? `<form class="doc-review-form" data-id="${esc(row.id)}">
-          <label for="feedback-${esc(row.id)}">Feedback <span>(required when returning a file)</span></label>
-          <textarea id="feedback-${esc(row.id)}" name="feedback" rows="2" maxlength="4000" placeholder="Explain any changes the student needs to make." ${busy ? 'disabled' : ''}>${esc(reviewFeedback.get(row.id) || '')}</textarea>
-          <div class="doc-review-actions"><button type="submit" value="approved" class="doc-button doc-button-primary" ${busy ? 'disabled' : ''}>Approve</button>
-          <button type="submit" value="returned" class="doc-button" ${busy ? 'disabled' : ''}>Return for revision</button></div>
-        </form>` : `<p class="doc-help">Reviewed ${esc(timestamp(row.reviewed_at))}</p>`}
-      </article>`;
+    const identities = new Map(students.map(student => [student.id, student]));
+    const groups = new Map();
+    for (const row of visible) {
+      if (!groups.has(row.user_id)) groups.set(row.user_id, []);
+      groups.get(row.user_id).push(row);
+    }
+    const grouped = [...groups.entries()];
+    list.innerHTML = grouped.length ? grouped.map(([studentId, files]) => {
+      const identity = identities.get(studentId) || { name: files[0]?.student_name || 'Student', email: files[0]?.student_email || '' };
+      const awaiting = files.filter(file => file.status === 'submitted').length;
+      const expanded = Boolean(reviewStudentId) || grouped.length === 1;
+      return `<details class="panel doc-review-student-section" data-review-student="${esc(studentId)}" ${expanded ? 'open' : ''}>
+        <summary class="doc-review-student-summary">
+          <span><strong>${esc(identity.name)}</strong>${identity.email ? `<small>${esc(identity.email)}</small>` : ''}</span>
+          <span class="doc-review-student-count">${files.length} file${files.length === 1 ? '' : 's'}${awaiting ? ` · ${awaiting} awaiting review` : ''}</span>
+        </summary>
+        <div class="doc-review-student-files">${files.map(row => {
+          const requirement = model.items.find(item => item.id === row.requirement_id);
+          return `<article class="doc-review-card">
+            <div class="doc-review-heading"><h3>${esc(requirement?.name || row.requirement_id)}</h3>${statusTag(row.status)}</div>
+            <p class="doc-review-filename">${esc(row.file_name)} · ${esc(model.sizeLabel(Number(row.file_size)))}</p>
+            <p class="doc-help">Submitted ${esc(timestamp(row.submitted_at))}</p>
+            <button type="button" class="doc-button" data-doc-action="download-review" data-id="${esc(row.id)}" ${busy ? 'disabled' : ''}>Download file</button>
+            ${feedback(row)}
+            ${row.status === 'submitted' ? `<form class="doc-review-form" data-id="${esc(row.id)}">
+              <label for="feedback-${esc(row.id)}">Feedback <span>(required when returning a file)</span></label>
+              <textarea id="feedback-${esc(row.id)}" name="feedback" rows="2" maxlength="4000" placeholder="Explain any changes the student needs to make." ${busy ? 'disabled' : ''}>${esc(reviewFeedback.get(row.id) || '')}</textarea>
+              <div class="doc-review-actions"><button type="submit" value="approved" class="doc-button doc-button-primary" ${busy ? 'disabled' : ''}>Approve</button>
+              <button type="submit" value="returned" class="doc-button" ${busy ? 'disabled' : ''}>Return for revision</button></div>
+            </form>` : `<p class="doc-help">Reviewed ${esc(timestamp(row.reviewed_at))}</p>`}
+          </article>`;
+        }).join('')}</div>
+      </details>`;
     }).join('') : '<p class="doc-empty panel">No submissions match this view.</p>';
   }
   function renderReviewProgress(students) {

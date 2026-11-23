@@ -24,5 +24,8 @@ Apply `supabase-short-coordinator-codes-migration.sql` afterward to replace long
 codes with six-character codes. Existing student connections are preserved.
 Then apply `supabase-auto-approve-code-migration.sql` so a valid professor code gives
 students immediate access and activates requests from the previous approval flow.
+Apply `supabase-student-roster-management-migration.sql` last to add professor roster
+search, combined document-and-hours completion checks, and safe removal of completed
+student cards.
 Only professors allocate students' required hours. Professors activate automatically;
 students activate by entering a valid professor code. See [DOCUMENTS_SETUP.md](DOCUMENTS_SETUP.md).

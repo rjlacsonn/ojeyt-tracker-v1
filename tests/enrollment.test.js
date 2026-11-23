@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const model = require('../public/js/documents-model.js');
 const source = fs.readFileSync(path.join(__dirname, '../public/js/enrollment.js'), 'utf8');
+const rosterMigration = fs.readFileSync(path.join(__dirname, '../supabase-student-roster-management-migration.sql'), 'utf8');
 
 function createApp(role = 'student', options = {}) {
   const user = { id: role, accountType: role, accountStatus: role === 'student' ? 'pending' : 'active' };
@@ -25,6 +26,17 @@ function createApp(role = 'student', options = {}) {
         const student = state.roster.find(row => row.student_id === args.p_student_id);
         student.required_hours = args.p_hours; return { error: null };
       }
+      if (name === 'ojt_archive_completed_student') {
+        const index = state.roster.findIndex(row => row.student_id === args.p_student_id && row.is_complete);
+        if (index < 0) return { error: { message: 'The student must complete all requirements and assigned OJT hours before removal.' } };
+        state.roster.splice(index, 1); return { error: null };
+      }
+      if (name === 'ojt_archive_all_completed_students') {
+        if (!state.roster.length || state.roster.some(row => !row.is_complete)) {
+          return { error: { message: 'Every active student must complete all requirements and assigned OJT hours before clearing the roster.' } };
+        }
+        const removed = state.roster.length; state.roster.splice(0); return { data: removed, error: null };
+      }
       if (name === 'ojt_join_coordinator') return { error: null };
       throw new Error(`Unexpected RPC: ${name}`);
     },
@@ -41,7 +53,8 @@ async function runTests() {
   const passed = [];
   const assert = (value, message) => { if (!value) throw new Error(message); };
   const test = async (name, fn) => { await fn(); passed.push(name); };
-  const request = { student_id: 'student-a', full_name: 'Student A', email: 'a@example.edu', approval_status: 'approved', required_hours: 200, logged_hours: 0 };
+  const request = { student_id: 'student-a', full_name: 'Student A', email: 'a@example.edu', approval_status: 'approved', required_hours: 200, logged_hours: 0, approved_requirements: 0, is_complete: false };
+  const completed = { ...request, logged_hours: 200, approved_requirements: 10, is_complete: true };
   await test('A valid professor code activates the student immediately', async () => {
     const a = createApp(); a.api.openStudent();
     assert(a.get('student-approval-content').innerHTML.includes('Join professor'), 'No professor connection UI');
@@ -63,7 +76,7 @@ async function runTests() {
   await test('Professor sees coordinator code and connected students', async () => {
     const a = createApp('professor', { roster: [request] }); await a.api.openProfessor();
     const html = a.get('professor-students-content').innerHTML;
-    assert(html.includes('ABC123') && html.includes('Connected') && html.includes('Student A'), 'Connected student missing');
+    assert(html.includes('ABC123') && html.includes('0/10 documents · 0/200h') && html.includes('Student A'), 'Connected student missing');
     assert(!html.includes('Approve student') && !html.includes('Waiting for approval'), 'Manual approval UI still visible');
   });
   await test('Roster query failure preserves coordinator code without false empty counts', async () => {
@@ -85,7 +98,7 @@ async function runTests() {
     const a = createApp('professor', { roster: [{ ...request }] });
     a.state.rpcFailures.ojt_document_context = 'Connection lost'; await a.api.openProfessor();
     const html = a.get('professor-students-content').innerHTML;
-    assert(html.includes('Unavailable') && html.includes('Student A') && html.includes('Connected'), 'Roster hidden by code failure');
+    assert(html.includes('Unavailable') && html.includes('Student A') && html.includes('0/10 documents · 0/200h'), 'Roster hidden by code failure');
     assert(!html.includes('Loading…'), 'Code remains loading after failure');
   });
   await test('Refresh recovers from roster error and shows genuine empty state', async () => {
@@ -101,6 +114,68 @@ async function runTests() {
   await test('Student names are escaped in professor queue', async () => {
     const a = createApp('professor', { roster: [{ ...request, full_name: '<script>bad</script>' }] }); await a.api.openProfessor();
     assert(!a.get('professor-students-content').innerHTML.includes('<script>bad'), 'Unsafe student name');
+  });
+  await test('Professor searches students by name or email', async () => {
+    const first = { ...request, email: 'alpha@school.edu' };
+    const second = { ...request, student_id: 'student-b', full_name: 'Maria Santos', email: 'maria@example.edu' };
+    const a = createApp('professor', { roster: [first, second] }); await a.api.openProfessor();
+    a.api.setSearch('maria');
+    let html = a.get('professor-student-results').innerHTML;
+    assert(html.includes('Maria Santos') && !html.includes('Student A'), 'Name search returned the wrong students');
+    a.api.setSearch('alpha@school.edu'); html = a.get('professor-student-results').innerHTML;
+    assert(html.includes('Student A') && !html.includes('Maria Santos'), 'Email search returned the wrong students');
+  });
+  await test('Only completed students have a removal control', async () => {
+    const a = createApp('professor', { roster: [{ ...request }, { ...completed, student_id: 'student-b', full_name: 'Student B' }] });
+    await a.api.openProfessor(); const html = a.get('professor-students-content').innerHTML;
+    assert(html.includes('data-student-id="student-b"') && html.includes('Remove student'), 'Completed student cannot be removed');
+    a.api.openRemoval('student-a');
+    assert(!a.get('professor-students-content').innerHTML.includes('Remove completed student?'), 'Incomplete student opened removal confirmation');
+  });
+  await test('OJT complete requires both approved documents and rendered hours', async () => {
+    const docsOnly = { ...request, approved_requirements: 10, logged_hours: 199, is_complete: false };
+    const hoursOnly = { ...request, student_id: 'student-b', full_name: 'Student B', approved_requirements: 9, logged_hours: 200, is_complete: false };
+    const a = createApp('professor', { roster: [docsOnly, hoursOnly] }); await a.api.openProfessor();
+    const html = a.get('professor-students-content').innerHTML;
+    assert(!html.includes('OJT complete') && !html.includes('Remove student'), 'Partial completion was marked complete');
+    a.api.openRemoval('student-a');
+    assert(!a.get('professor-students-content').innerHTML.includes('Remove completed student?'), 'Documents-only completion allowed removal');
+  });
+  await test('Individual removal requires confirmation and archives the roster card', async () => {
+    const a = createApp('professor', { roster: [{ ...completed }] }); await a.api.openProfessor();
+    a.api.openRemoval('student-a');
+    assert(a.get('professor-students-content').innerHTML.includes('Remove completed student?') &&
+      a.get('professor-students-content').innerHTML.includes('coordinator-code screen'), 'Removal confirmation missing reconnection warning');
+    await a.api.confirmRemoval();
+    assert(a.state.calls.some(([name, args]) => name === 'ojt_archive_completed_student' && args.p_student_id === 'student-a'), 'Archive RPC not called');
+    assert(!a.state.roster.length && a.get('professor-students-content').innerHTML.includes('No students have joined'), 'Archived student card remains visible');
+  });
+  await test('Archived enrollment revokes access until the student reconnects', async () => {
+    assert(rosterMigration.includes("approval_status = 'approved' and archived_at is null"), 'Archived enrollment still grants tracker access');
+    assert(rosterMigration.includes('where student_id = auth.uid() and archived_at is null'), 'Archived enrollment still appears in account context');
+    assert(rosterMigration.includes("approval_status = 'approved', archived_at = null"), 'Coordinator code does not restore archived enrollment');
+  });
+  await test('Removal confirmation can be cancelled without changing the roster', async () => {
+    const a = createApp('professor', { roster: [{ ...completed }] }); await a.api.openProfessor();
+    a.api.openRemoval('student-a'); a.api.cancelRemoval();
+    assert(a.state.roster.length === 1 && !a.state.calls.some(([name]) => name.includes('archive')), 'Cancelled removal changed the roster');
+  });
+  await test('Failed removal keeps the student card and displays the database error', async () => {
+    const a = createApp('professor', { roster: [{ ...completed }] }); await a.api.openProfessor();
+    a.state.rpcFailures.ojt_archive_completed_student = 'Completion changed. Refresh and try again.';
+    a.api.openRemoval('student-a'); await a.api.confirmRemoval();
+    const html = a.get('professor-students-content').innerHTML;
+    assert(a.state.roster.length === 1 && html.includes('Student A') && html.includes('Completion changed'), 'Failed removal changed or hid the roster');
+  });
+  await test('Clear roster is allowed only when every student is complete', async () => {
+    const blocked = createApp('professor', { roster: [{ ...completed }, { ...request, student_id: 'student-b' }] });
+    await blocked.api.openProfessor(); blocked.api.openRemoval(); await blocked.api.confirmRemoval();
+    assert(!blocked.state.calls.some(([name]) => name === 'ojt_archive_all_completed_students'), 'Incomplete roster was cleared');
+    const ready = createApp('professor', { roster: [{ ...completed }, { ...completed, student_id: 'student-b', full_name: 'Student B' }] });
+    await ready.api.openProfessor(); ready.api.openRemoval();
+    assert(ready.get('professor-students-content').innerHTML.includes('Clear completed students?'), 'Clear confirmation missing');
+    await ready.api.confirmRemoval();
+    assert(!ready.state.roster.length && ready.state.calls.some(([name]) => name === 'ojt_archive_all_completed_students'), 'Completed roster was not cleared');
   });
   await test('Reset ignores late roster results from a previous account', async () => {
     const a = createApp('professor', { roster: [{ ...request }] });

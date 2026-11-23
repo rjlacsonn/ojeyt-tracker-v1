@@ -130,8 +130,16 @@ start with no target until their professor allocates hours. Older targets withou
 a professor allocation record are cleared and must be assigned again.
 Apply `supabase-student-progress-migration.sql` afterward to show each enrolled
 student's assigned, logged, and remaining hours plus completion in Students.
-Apply `supabase-auto-approve-code-migration.sql` last on existing databases to
+Apply `supabase-auto-approve-code-migration.sql` on existing databases to
 activate old pending requests and enable immediate access for future connections.
+Apply `supabase-student-roster-management-migration.sql` last to let professors
+search large rosters and archive completed student cards after confirmation. Individual
+removal requires all 10 requirements to be approved and the assigned OJT hours to be
+fully rendered; bulk clearing requires every active student to meet both conditions.
+Accounts, shifts, and document history are preserved.
+Removed students return to the coordinator-code screen and must reconnect before
+they can use the tracker again.
 Review also shows each student's document completion and a requirement checklist,
 including enrolled students with no submissions. Search or select a student to
-monitor their requirements and review files together.
+monitor their requirements. Files to review are grouped into collapsible student
+sections so simultaneous submissions do not become one mixed list.
