@@ -249,8 +249,36 @@
         <label>Role<select id="admin-role"><option value="">All roles</option><option>Student</option><option>Professor</option><option>Administrator</option></select></label></div>
         <div id="admin-directory"></div>
       </article>
+      <article class="panel admin-panel"><h2>Student document requirements</h2>
+        <p class="admin-panel-help">Add or edit the sections students must submit. Removed sections can be restored later, and preserved files are not deleted.</p>
+        <form id="admin-requirement-add" class="admin-requirement-form">
+          <label>Section name<input name="name" maxlength="120" placeholder="e.g. Weekly Accomplishment Report" required></label>
+          <label>Number<input name="number" type="number" min="1" max="9999" required></label>
+          <label>Display order<input name="order" type="number" min="1" max="10000" required></label>
+          <button class="doc-button doc-button-primary" type="submit">Add requirement</button>
+        </form>
+        <div id="admin-requirements"></div>
+      </article>
+      <article class="panel admin-panel"><h2>Student achievement badges</h2>
+        <p class="admin-panel-help">Customize the badges students can earn. Suggestions are optional and are never added automatically.</p>
+        <div id="admin-badge-suggestions" class="admin-badge-suggestions"></div>
+        <h3 class="admin-subheading">Add a custom badge</h3>
+        <form id="admin-badge-add" class="admin-badge-form">
+          <label>Badge name<input name="name" maxlength="80" placeholder="e.g. Century Club" required></label>
+          <label>Icon<input name="icon" maxlength="16" placeholder="🏅" required></label>
+          <label class="admin-badge-description">Description<input name="description" maxlength="240" placeholder="Explain how the student earns this badge" required></label>
+          <label>Measures<select name="metric" required><option value="attendance_days">Attendance days</option><option value="full_days">8-hour days</option><option value="accomplishment_days">Accomplishment days</option><option value="best_streak">Best attendance streak</option><option value="current_streak">Current attendance streak</option><option value="total_hours">Total OJT hours</option><option value="hours_percent">Percent of assigned hours</option></select></label>
+          <label>Target<input name="goal" type="number" min="1" max="10000" step="0.01" required></label>
+          <label>XP reward<input name="xp" type="number" min="0" max="10000" step="1" required></label>
+          <label>Display order<input name="order" type="number" min="1" max="10000" step="1" required></label>
+          <button class="doc-button doc-button-primary" type="submit">Add badge</button>
+        </form>
+        <p id="admin-badge-status" role="status"></p>
+        <div id="admin-badges"></div>
+      </article>
       <article class="panel admin-panel"><h2>Recent administrative actions</h2><div id="admin-log"></div></article>
       <dialog id="admin-confirm" aria-labelledby="admin-confirm-title"><form method="dialog"><h2 id="admin-confirm-title"></h2><p id="admin-confirm-detail"></p><div class="modal-actions"><button class="doc-button" value="cancel" autofocus>Cancel</button><button class="doc-button doc-button-primary" value="apply">Confirm</button></div></form></dialog>
+      <dialog id="admin-badge-confirm" aria-labelledby="admin-badge-confirm-title"><form method="dialog"><h2 id="admin-badge-confirm-title">Remove this badge?</h2><p id="admin-badge-confirm-detail"></p><div class="modal-actions"><button class="doc-button" value="cancel" autofocus>Cancel</button><button class="doc-button doc-button-primary" value="apply">Confirm</button></div></form></dialog>
     </section>
     <section id="page-dashboard" class="page app-page" aria-label="Dashboard">
       <div class="page-heading dashboard-heading">
@@ -515,11 +543,12 @@
     </section>
 
     <!-- ===== BADGES PAGE ===== -->
-    <section id="page-badges" class="page app-page" aria-label="Badges and achievements">
-      <div class="page-heading">
+    <section id="page-badges" class="page app-page badges-page" aria-label="Badges and achievements">
+      <div class="page-heading badges-page-heading">
         <div>
+          <p class="badges-page-kicker">YOUR ACHIEVEMENT JOURNEY</p>
           <h1>Badges &amp; Achievements</h1>
-          <p>Celebrate your milestones and follow your growth as an intern.</p>
+          <p>Every shift builds your story. See what you have earned and what to unlock next.</p>
         </div>
       </div>
       <article id="gamification-panel" class="rewards-panel" aria-label="Your OJT achievements"></article>
@@ -644,6 +673,7 @@
   <script src="js/auth-interface.js"></script>
   <script src="js/app.js"></script>
   <script src="js/admin.js"></script>
+  <script src="js/admin-badges.js"></script>
 
 </body>
 </html>

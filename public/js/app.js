@@ -34,8 +34,8 @@ function navTo(page) {
   }
 
   currentPage = page;
-  if (page === 'admin') AdminDashboard.load();
-  else AdminDashboard.reset();
+  if (page === 'admin') { AdminDashboard.load(); AdminBadges.load(); }
+  else { AdminDashboard.reset(); AdminBadges.reset(); }
   if (page === 'dashboard') {
     updateDashboard();
     setDefaultShiftDate();
@@ -148,6 +148,8 @@ async function showAppUI() {
   Enrollment.reset();
   if (currentUser.accountType === 'admin' || currentUser.accountType === 'unavailable' || currentUser.accountStatus !== 'active') Documents.reset();
   else await Documents.initializeAccount();
+  if (currentUser.accountType === 'student' && currentUser.accountStatus === 'active') await loadGamificationSettings();
+  else resetGamification();
   applyAccountNavigation();
 
   // ===== SHOW PROGRESS BAR =====

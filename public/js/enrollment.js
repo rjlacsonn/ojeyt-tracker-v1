@@ -1,11 +1,11 @@
 /* Students join a professor immediately by entering that professor's coordinator code. */
 const Enrollment = (() => {
   let generation = 0, busy = false, students = [], rosterLoaded = false, joinCode = '', errorMessage = '';
-  let studentSearch = '', confirmation = null;
+  let studentSearch = '', studentView = 'all', confirmation = null;
   const esc = DocumentRequirements.escape;
   function reset() {
     generation++; busy = false; students = []; rosterLoaded = false; joinCode = ''; errorMessage = '';
-    studentSearch = ''; confirmation = null;
+    studentSearch = ''; studentView = 'all'; confirmation = null;
     for (const id of ['student-approval-content', 'professor-students-content']) document.getElementById(id)?.replaceChildren();
   }
   function sameSession(version, id) { return generation === version && currentUser?.id === id; }
@@ -43,39 +43,51 @@ const Enrollment = (() => {
       </form>
     </article>`;
   }
-  const requiredDocuments = DocumentRequirements.items.length;
+  const requiredDocuments = () => DocumentRequirements.items.length;
   function isComplete(student) {
     const target = Number(student.required_hours);
     const logged = Number(student.logged_hours);
-    return Number(student.approved_requirements) === requiredDocuments && Number.isFinite(target) && target > 0 &&
+    return Number(student.approved_requirements) === requiredDocuments() && Number.isFinite(target) && target > 0 &&
       Number.isFinite(logged) && logged >= target;
   }
   function matchingStudents() {
     const query = studentSearch.trim().toLocaleLowerCase();
-    if (!query) return students;
-    return students.filter(student => `${student.full_name || ''} ${student.email || ''}`.toLocaleLowerCase().includes(query));
+    return students.filter(student => (studentView === 'all' ||
+      (studentView === 'complete' ? isComplete(student) : !isComplete(student))) &&
+      (!query || `${student.full_name || ''} ${student.email || ''}`.toLocaleLowerCase().includes(query)));
+  }
+  function initials(student) {
+    return (student.full_name || 'Student').trim().split(/\s+/).slice(0, 2)
+      .map(part => part[0] || '').join('').toUpperCase();
+  }
+  function profilePicture(student) {
+    const url = String(student.profile_picture_url || '').trim();
+    return /^https?:\/\//i.test(url) ? url : '';
   }
   function studentCards() {
     const matches = matchingStudents();
     if (!students.length) return '<p class="doc-empty">No students have joined yet.</p>';
-    if (!matches.length) return `<p class="doc-empty">No students match “${esc(studentSearch.trim())}”.</p>`;
+    if (!matches.length) return `<div class="panel student-roster-empty"><strong>No students found</strong><p>${studentSearch.trim() ? `No students match “${esc(studentSearch.trim())}”.` : `There are no ${studentView === 'complete' ? 'completed' : 'in-progress'} students in this view.`}</p><button type="button" class="doc-button" data-enrollment-action="show-all-students">Show all students</button></div>`;
     return matches.map(student => {
-      const approved = Math.max(0, Math.min(requiredDocuments, Number(student.approved_requirements) || 0));
+      const approved = Math.max(0, Math.min(requiredDocuments(), Number(student.approved_requirements) || 0));
       const complete = isComplete(student);
       const target = Number(student.required_hours);
       const logged = Number(student.logged_hours);
       const hoursLabel = Number.isFinite(target) && target > 0 && Number.isFinite(logged)
         ? `${Number(logged.toFixed(2)).toLocaleString()}/${Number(target.toFixed(2)).toLocaleString()}h`
         : 'hours not assigned';
+      const picture = profilePicture(student);
       return `<article class="panel student-request-card">
-        <div><h3>${esc(student.full_name || 'Student')}</h3><p>${esc(student.email)}</p></div>
+        <header class="student-card-header"><div class="student-avatar" aria-hidden="true"><span>${esc(initials(student))}</span>${picture ? `<img src="${esc(picture)}" alt="" loading="lazy" referrerpolicy="no-referrer" />` : ''}</div>
+          <div class="student-identity"><h3>${esc(student.full_name || 'Student')}</h3><p>${esc(student.email)}</p></div>
+          <span class="doc-status ${complete ? 'doc-status-approved' : 'doc-status-submitted'}">${complete ? 'OJT complete' : 'In progress'}</span></header>
+        <div class="student-document-summary"><span>Document requirements</span><strong>${approved} / ${requiredDocuments()} approved</strong><small>${hoursLabel}</small></div>
         <form class="student-hours-form" data-student-id="${esc(student.student_id)}">
           <label class="field"><span>Required OJT hours</span>
             <input name="hours" type="number" min="1" max="10000" step="1" placeholder="Not assigned" value="${esc(student.required_hours ?? '')}" required ${busy ? 'disabled' : ''} /></label>
           <button type="submit" class="doc-button" ${busy ? 'disabled' : ''}>Save hours</button>
         </form>
         <div class="student-card-actions">
-          <span class="doc-status ${complete ? 'doc-status-approved' : 'doc-status-submitted'}">${complete ? 'OJT complete' : `${approved}/${requiredDocuments} documents · ${hoursLabel}`}</span>
           ${complete ? `<button type="button" class="doc-button student-remove-button" data-enrollment-action="remove-student" data-student-id="${esc(student.student_id)}" ${busy ? 'disabled' : ''}>Remove student</button>` : ''}
         </div>
         ${progressSummary(student)}
@@ -86,7 +98,7 @@ const Enrollment = (() => {
     const results = document.getElementById('professor-student-results');
     if (results) results.innerHTML = studentCards();
     const count = document.getElementById('student-search-count');
-    if (count) count.textContent = studentSearch.trim() ? `${matchingStudents().length} of ${students.length}` : String(students.length);
+    if (count) count.textContent = `${matchingStudents().length} shown`;
   }
   function confirmationModal() {
     if (!confirmation) return '';
@@ -110,16 +122,31 @@ const Enrollment = (() => {
     const container = document.getElementById('professor-students-content');
     if (!container || currentUser?.accountType !== 'professor') return;
     const allComplete = students.length > 0 && students.every(isComplete);
+    const completeCount = students.filter(isComplete).length;
+    const inProgressCount = students.length - completeCount;
     container.innerHTML = `${busy ? '<p class="doc-notice" role="status">Updating students…</p>' : ''}
       ${errorMessage ? `<p class="doc-error" role="alert">${esc(errorMessage)}</p>` : ''}
       <article class="panel doc-recipient"><div><h2>Your account is active</h2><p>Share your coordinator code with your students. Students who enter it receive access immediately and appear in this list.</p></div>
         <div class="doc-code"><span>Your coordinator code</span><strong>${esc(joinCode || (busy ? 'Loading…' : 'Unavailable'))}</strong></div></article>
-      ${rosterLoaded ? `<div class="student-roster-toolbar">
-        <label class="student-search-field" for="student-search"><span>Find a student</span><input id="student-search" type="search" placeholder="Search by name or email" autocomplete="off" value="${esc(studentSearch)}" /></label>
-        <button type="button" class="doc-button student-danger-button" data-enrollment-action="clear-students" ${busy || !allComplete ? 'disabled' : ''} title="${allComplete ? 'Remove all completed students from the active roster' : 'Every student must complete all document requirements and assigned OJT hours first'}">Clear completed roster</button>
-      </div>
-      <h2 class="student-list-heading">Students <span id="student-search-count">${students.length}</span></h2>
-      <div id="professor-student-results">${studentCards()}</div>`
+      ${rosterLoaded ? `<section class="student-roster-section" aria-labelledby="student-roster-heading">
+        <div class="student-roster-overview">
+          <div><span>Total students</span><strong>${students.length}</strong></div>
+          <div><span>In progress</span><strong>${inProgressCount}</strong></div>
+          <div><span>OJT complete</span><strong>${completeCount}</strong></div>
+        </div>
+        <div class="student-roster-heading-row"><div><p class="eyebrow">Active roster</p><h2 id="student-roster-heading">Your students</h2><p>Find a student, review progress, and assign required OJT hours.</p></div>
+          <button type="button" class="doc-button student-danger-button" data-enrollment-action="clear-students" ${busy || !allComplete ? 'disabled' : ''} title="${allComplete ? 'Remove all completed students from the active roster' : 'Every student must complete all document requirements and assigned OJT hours first'}">Clear completed roster</button></div>
+        <div class="student-roster-toolbar">
+          <div class="student-view-options" role="group" aria-label="Student view">
+            <button type="button" data-enrollment-action="set-student-view" data-view="all" class="${studentView === 'all' ? 'is-active' : ''}" aria-pressed="${studentView === 'all'}">All students <span>${students.length}</span></button>
+            <button type="button" data-enrollment-action="set-student-view" data-view="progress" class="${studentView === 'progress' ? 'is-active' : ''}" aria-pressed="${studentView === 'progress'}">In progress <span>${inProgressCount}</span></button>
+            <button type="button" data-enrollment-action="set-student-view" data-view="complete" class="${studentView === 'complete' ? 'is-active' : ''}" aria-pressed="${studentView === 'complete'}">OJT complete <span>${completeCount}</span></button>
+          </div>
+          <label class="student-search-field" for="student-search"><span class="sr-only">Find a student</span><input id="student-search" type="search" placeholder="Search students by name or email" autocomplete="off" value="${esc(studentSearch)}" /></label>
+        </div>
+        <div class="student-results-heading"><strong id="student-search-count">${matchingStudents().length} shown</strong>${studentSearch ? `<button type="button" class="student-clear-search" data-enrollment-action="clear-student-search">Clear search</button>` : ''}</div>
+        <div id="professor-student-results" class="student-card-list">${studentCards()}</div>
+      </section>`
       : `<p class="doc-notice" role="status">${busy ? 'Loading students…' : 'Student list could not be loaded. Select Refresh to try again.'}</p>`}
       ${confirmationModal()}`;
   }
@@ -192,6 +219,11 @@ const Enrollment = (() => {
     studentSearch = String(value || '');
     renderStudentResults();
   }
+  function setView(value) {
+    studentView = ['all', 'progress', 'complete'].includes(value) ? value : 'all';
+    renderProfessor();
+    renderStudentResults();
+  }
   function openRemoval(studentId = null) {
     if (busy || currentUser?.accountType !== 'professor' || currentUser.accountStatus !== 'active') return;
     if (studentId) {
@@ -248,6 +280,9 @@ const Enrollment = (() => {
         if (!button || button.disabled) return;
         if (button.dataset.enrollmentAction === 'remove-student') openRemoval(button.dataset.studentId);
         if (button.dataset.enrollmentAction === 'clear-students') openRemoval();
+        if (button.dataset.enrollmentAction === 'set-student-view') setView(button.dataset.view);
+        if (button.dataset.enrollmentAction === 'show-all-students') { studentSearch = ''; setView('all'); }
+        if (button.dataset.enrollmentAction === 'clear-student-search') { studentSearch = ''; renderProfessor(); }
         if (button.dataset.enrollmentAction === 'cancel-removal') cancelRemoval();
         if (button.dataset.enrollmentAction === 'confirm-removal') confirmRemoval();
         if (button.dataset.enrollmentAction === 'refresh') {
@@ -258,10 +293,13 @@ const Enrollment = (() => {
     document.getElementById('page-student-approvals')?.addEventListener('input', event => {
       if (event.target.id === 'student-search') setSearch(event.target.value);
     });
+    document.getElementById('page-student-approvals')?.addEventListener('error', event => {
+      if (event.target.matches?.('.student-avatar img')) event.target.hidden = true;
+    }, true);
     document.getElementById('page-student-approvals')?.addEventListener('keydown', event => {
       if (event.key === 'Escape' && confirmation) { event.preventDefault(); cancelRemoval(); }
     });
   });
   return { reset, openStudent: renderStudent, openProfessor, refreshAccess, joinProfessor, setHours,
-    setSearch, openRemoval, cancelRemoval, confirmRemoval };
+    setSearch, setView, openRemoval, cancelRemoval, confirmRemoval };
 })();

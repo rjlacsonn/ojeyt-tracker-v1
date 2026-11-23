@@ -35,10 +35,15 @@ const Documents = (() => {
   async function identify() {
     if (!currentUser) return null;
     const userId = currentUser.id, version = generation;
-    const { data, error } = await supabase.rpc('ojt_document_context');
+    const [account, requirements] = await Promise.all([
+      supabase.rpc('ojt_document_context'),
+      supabase.rpc('ojt_document_requirements'),
+    ]);
     if (!sameSession(version, userId)) return null;
-    if (error) throw error;
-    context = data;
+    if (account.error) throw account.error;
+    if (requirements.error) throw requirements.error;
+    model.setItems(requirements.data || []);
+    context = account.data;
     accountId = userId;
     const nav = document.getElementById('review-nav-btn');
     if (nav) nav.hidden = !context?.is_coordinator;
@@ -88,11 +93,11 @@ const Documents = (() => {
       </div>
       <article class="panel doc-recipient">
         <div><h2>Your OJT coordinator</h2><p>${context?.recipient_name ? `Connected to <strong>${esc(context.recipient_name)}</strong>.` : 'Enter the code shared by your professor or coordinator before submitting.'}</p></div>
-        <form class="doc-connect-form">
+        ${context?.recipient_id ? `<div class="doc-coordinator-locked"><span>Coordinator assigned</span><strong>${esc(context.recipient_name || 'OJT coordinator')}</strong><small>To request a coordinator change, contact your professor or the project administrator.</small></div>` : `<form class="doc-connect-form">
           <label for="coordinator-code">Coordinator code</label>
           <div class="doc-connect-controls"><input id="coordinator-code" name="code" type="text" minlength="6" maxlength="32" autocomplete="off" autocapitalize="characters" placeholder="Enter coordinator code" required ${busy ? 'disabled' : ''} />
-          <button class="doc-button doc-button-primary" type="submit" ${busy || !context ? 'disabled' : ''}>${context?.recipient_id ? 'Change coordinator' : 'Connect'}</button></div>
-        </form>
+          <button class="doc-button doc-button-primary" type="submit" ${busy || !context ? 'disabled' : ''}>Connect</button></div>
+        </form>`}
       </article>
       <div class="doc-toolbar"><p>PDF, Word, Excel, JPG or PNG · Up to 10 MB per file. Multiple attachments are welcome.</p>
         <button type="button" class="doc-button doc-button-primary" data-doc-action="submit-all" ${busy || !summary.ready || !context?.recipient_id ? 'disabled' : ''}>Submit ready files (${summary.ready})</button>
@@ -230,6 +235,8 @@ const Documents = (() => {
           reviewRosterError = 'Student roster could not be loaded. Showing students with submissions only. Select Refresh to try again.';
         } else {
           reviewStudents = roster.value.data || []; reviewRosterError = '';
+          const activeStudentIds = new Set(reviewStudents.map(student => student.student_id));
+          reviews = reviews.filter(row => activeStudentIds.has(row.user_id));
         }
         if (reviewStudentId && !model.reviewSummary(reviewStudents, reviews).some(student => student.id === reviewStudentId)) reviewStudentId = '';
       } else rows = data || [];
@@ -293,7 +300,9 @@ const Documents = (() => {
     });
   }
   async function submit(requirementId = null) {
-    const ready = rows.filter(row => (!requirementId || row.requirement_id === requirementId) && ['draft', 'returned'].includes(row.status));
+    const activeIds = new Set(model.items.map(item => item.id));
+    const ready = rows.filter(row => activeIds.has(row.requirement_id) &&
+      (!requirementId || row.requirement_id === requirementId) && ['draft', 'returned'].includes(row.status));
     if (!ready.length || !context?.recipient_id || busy) return;
     if (!confirm(`Submit ${ready.length} file${ready.length === 1 ? '' : 's'} to ${context.recipient_name}? Submitted files stay locked while awaiting review.`)) return;
     await operate(async (userId, guard) => {
@@ -329,6 +338,7 @@ const Documents = (() => {
     }, review);
   }
   async function connect(code) {
+    if (context?.recipient_id) { errorMessage = 'Your coordinator is already assigned. Contact your professor or administrator to request a change.'; render(); return; }
     const clean = code.trim().toUpperCase();
     if (!/^[A-Z0-9]{6,32}$/.test(clean)) { errorMessage = 'Enter a valid coordinator code.'; render(); return; }
     let connected = false;

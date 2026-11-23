@@ -96,6 +96,23 @@ function runTests() {
   test('Numeric strings are supported', () => {
     equal(calculate([shift('2026-10-07', '8.00')]).xp, 100);
   });
+  test('Administrator badge settings replace and restore the active collection', () => {
+    Gamification.setBadges([{ badge_id: 'custom-hours', badge_name: 'Sixteen Strong', icon: '⚡',
+      description: 'Complete 16 OJT hours.', metric_type: 'total_hours', goal_value: 16,
+      xp_reward: 40, display_order: 1 }]);
+    const configured = calculate([shift('2026-10-06'), shift('2026-10-07')]);
+    equal([configured.badges.length, configured.badges[0].earned, configured.badgeXP, configured.xp], [1, true, 40, 140]);
+    Gamification.resetBadges();
+    equal(calculate([]).badges.length, 11);
+  });
+  test('Custom percentage badges wait for professor hour allocation', () => {
+    Gamification.setBadges([{ id: 'custom-percent', name: 'Almost There', icon: '🎯', description: 'Reach 75%.',
+      metric: 'hours_percent', goal: 75, xp: 100, order: 1 }]);
+    const waiting = calculate([shift('2026-10-07')], '2026-10-07', null).badges[0];
+    const earnedBadge = calculate([shift('2026-10-07')], '2026-10-07', 8).badges[0];
+    equal([waiting.waitingForTarget, waiting.earned, earnedBadge.earned], [true, false, true]);
+    Gamification.resetBadges();
+  });
   test('Highest level has a complete progress bar', () => {
     const rows = [];
     for (let i = 1; i <= 100; i++) {

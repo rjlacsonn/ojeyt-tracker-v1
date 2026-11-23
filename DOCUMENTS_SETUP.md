@@ -14,15 +14,30 @@ Run these files in the SQL Editor in this order:
 8. **`supabase-short-coordinator-codes-migration.sql`** (six-character professor codes).
 9. **`supabase-auto-approve-code-migration.sql`** (immediate access after a valid code).
 10. **`supabase-student-roster-management-migration.sql`** (search and completed-student archiving).
+11. **`supabase-admin-migration.sql`** (administrator role and dashboard access).
+12. **`supabase-archived-review-cleanup-migration.sql`** (hide archived students from review and downloads).
+13. **`supabase-admin-document-requirements-migration.sql`** (administrator-managed student requirements).
+14. **`supabase-admin-badges-migration.sql`** (administrator-managed achievement badges).
+15. **`supabase-lock-student-coordinator-migration.sql`** (prevent students from changing an active coordinator).
+16. **`supabase-student-profile-picture-migration.sql`** (show student profile pictures in the professor roster).
 
-For a project already running the first three scripts, run steps 4–10. If step 9 is
-already installed, run only step 10. Step 4 activates
+For a project already running the first three scripts, run steps 4–16 in order.
+If the admin dashboard and roster management are already installed, rerun step 11
+and then run steps 12–16. Step 4 activates
 existing professor registrations, including accounts that were previously waiting
 for administrator approval. Existing student records, shifts, files, and coordinator
 connections are preserved. Step 8 assigns each professor a new six-character code;
 previously shared codes stop working, but already enrolled students remain connected.
 Step 9 activates existing pending enrollments and makes future valid code entries immediate.
 Step 10 adds roster search data and safe removal controls for completed students.
+Step 11 installs or repairs administrator access. Step 12 removes archived students
+from professor review results and blocks access to their private submissions.
+Step 13 lets administrators add, edit, remove, and restore document requirements.
+Step 14 provides equivalent controls for student achievement badges and XP rewards.
+Step 15 removes self-service coordinator changes. Administrators can disconnect an
+incorrect enrollment; only then can the student enter another coordinator code.
+Step 16 adds each student's existing profile picture URL to the professor's secure
+roster response. Students without a picture continue to display their initials.
 Refresh the browser and sign in again after the migration succeeds.
 
 If Students reports **"structure of query does not match function result type"**,
@@ -55,6 +70,9 @@ in the order above. The final migration also refreshes the Supabase API schema c
   Removal archives the enrollment and returns the student to the coordinator-code
   screen. Tracker access remains blocked until the student enters a valid code again.
   The student account, shifts, and document audit history are preserved.
+  Archived students and their files are removed from the professor's Students and
+  Review pages. Their preserved submissions become visible again only if the student
+  reconnects to that professor with a valid coordinator code.
 - **Student progress:** each card shows assigned hours, logged hours, remaining
   hours, and completion percentage. Select Refresh to load updated records.
   Logged hours use the same saved shift totals as the student's dashboard.
@@ -71,6 +89,16 @@ in the order above. The final migration also refreshes the Supabase API schema c
   set these again. It preserves shifts, logged hours, and subsequent professor
   allocations when rerun. Students refresh the
   browser to see updated progress, remaining hours, and badge calculations.
+- **Administrator-managed requirements:** Administration includes a Student document
+  requirements section. Add a section with its name, visible number, and display order.
+  Save changes to rename or reorder it. Remove hides it from student and professor
+  checklists and excludes it from OJT completion; Restore activates it again. Existing
+  submissions are preserved throughout. At least one requirement must remain active.
+- **Administrator-managed badges:** Administration includes editable student badges.
+  Admins can customize the icon, name, description, measurement, target, XP reward,
+  and display order, or remove and restore badges. Optional suggestion cards can be
+  added and customized but are never enabled automatically. Badge progress continues
+  to be calculated from saved shifts and the professor-assigned hour target.
 - **Student:** after a valid code is accepted, Dashboard, History, Documents,
   Badges, and Settings unlock immediately.
 

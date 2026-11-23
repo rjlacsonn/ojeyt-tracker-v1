@@ -1,6 +1,10 @@
 .nav-btn[hidden] { display: none; }
 .documents-page .page-heading > div { min-width: 0; }
 .documents-page .page-heading p { line-height: 1.5; }
+.doc-coordinator-locked { display: grid; gap: 5px; min-width: min(100%, 290px); padding: 14px 16px; border: 1px solid #b9ddd6; border-radius: 12px; background: #effaf7; }
+.doc-coordinator-locked span { color: var(--teal-dark); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+.doc-coordinator-locked strong { color: var(--ink); font-size: 16px; }
+.doc-coordinator-locked small { color: var(--muted); font-size: 12px; line-height: 1.55; }
 .doc-notice { min-height: 24px; color: var(--teal-dark); font-size: 13px; font-weight: 600; }
 .doc-error { padding: 14px 16px; margin-bottom: 18px; background: #fff1f2; border: 1px solid #fecdd3; color: #a11b31; border-radius: 10px; font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
 .doc-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 22px; }

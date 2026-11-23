@@ -1,6 +1,6 @@
 /* Requirement IDs follow the numbering in the supplied school checklist. */
 const DocumentRequirements = (() => {
-  const items = [
+  const defaults = [
     { id: 'application', number: 4, name: 'OJT Application Form' },
     { id: 'deployment-interview', number: 5, name: 'Pre-OJT Deployment Interview' },
     { id: 'information-monitoring', number: 6, name: 'OJT Information and Monitoring Form' },
@@ -12,6 +12,7 @@ const DocumentRequirements = (() => {
     { id: 'undertaking-consent', number: 12, name: 'OJT Deed of Undertaking / Informed Consent' },
     { id: 'confidentiality', number: 13, name: 'Non-Disclosure and Confidentiality Agreement' },
   ];
+  const items = defaults.map(item => ({ ...item }));
   const types = {
     pdf: 'application/pdf',
     doc: 'application/msword',
@@ -39,9 +40,24 @@ const DocumentRequirements = (() => {
   }
   function contentType(file) { return types[file.name.split('.').pop().toLowerCase()]; }
   function sizeLabel(bytes) { return bytes < 1024 * 1024 ? `${Math.ceil(bytes / 1024)} KB` : `${(bytes / (1024 * 1024)).toFixed(1)} MB`; }
+  function setItems(next) {
+    if (!Array.isArray(next) || !next.length) throw new Error('At least one active document requirement is required.');
+    const normalized = next.map((item, index) => ({
+      id: String(item.id || item.requirement_id || ''),
+      number: Number(item.number ?? item.requirement_number ?? index + 1),
+      name: String(item.name || item.requirement_name || ''),
+    })).filter(item => item.id && item.name && Number.isInteger(item.number));
+    if (normalized.length !== next.length || new Set(normalized.map(item => item.id)).size !== normalized.length) {
+      throw new Error('The document requirement list is invalid.');
+    }
+    items.splice(0, items.length, ...normalized);
+  }
+  function resetItems() { items.splice(0, items.length, ...defaults.map(item => ({ ...item }))); }
   function summary(rows) {
+    const activeIds = new Set(items.map(item => item.id));
+    const activeRows = rows.filter(row => activeIds.has(row.requirement_id));
     const byRequirement = items.map(item => {
-      const files = rows.filter(row => row.requirement_id === item.id);
+      const files = activeRows.filter(row => row.requirement_id === item.id);
       // Revisions and unsubmitted additions must stay visible even if another file was approved.
       const status = !files.length ? 'missing' : files.some(f => f.status === 'returned') ? 'returned' :
         files.some(f => f.status === 'draft') ? 'draft' : files.some(f => f.status === 'submitted') ? 'submitted' : 'approved';
@@ -49,8 +65,8 @@ const DocumentRequirements = (() => {
     });
     return { items: byRequirement, uploaded: byRequirement.filter(item => item.files.length).length,
       approved: byRequirement.filter(item => item.status === 'approved').length,
-      pending: rows.filter(row => row.status === 'submitted').length,
-      ready: rows.filter(row => row.status === 'draft' || row.status === 'returned').length };
+      pending: activeRows.filter(row => row.status === 'submitted').length,
+      ready: activeRows.filter(row => row.status === 'draft' || row.status === 'returned').length };
   }
   function reviewSummary(students, rows) {
     const groups = new Map();
@@ -75,6 +91,6 @@ const DocumentRequirements = (() => {
         percent: Math.round(progress.approved / items.length * 100) };
     }).sort((a, b) => a.name.localeCompare(b.name));
   }
-  return { items, types, maxBytes, labels, escape, validate, contentType, sizeLabel, summary, reviewSummary };
+  return { items, types, maxBytes, labels, escape, validate, contentType, sizeLabel, setItems, resetItems, summary, reviewSummary };
 })();
 if (typeof module !== 'undefined') module.exports = DocumentRequirements;

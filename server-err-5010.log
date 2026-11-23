@@ -1,32 +1,24 @@
-✗ MongoDB connection error: MongooseServerSelectionError: connect ECONNREFUSED ::1:27017, connect ECONNREFUSED 127.0.0.1:27017
-    at _handleConnectionErrors (C:\Users\aaron\Downloads\ojeyt-tracker\node_modules\mongoose\lib\connection.js:1180:11)
-    at NativeConnection.openUri (C:\Users\aaron\Downloads\ojeyt-tracker\node_modules\mongoose\lib\connection.js:1111:11) {
-  errorLabelSet: Set(0) {},
-  reason: TopologyDescription {
-    type: 'Unknown',
-    servers: Map(1) { 'localhost:27017' => [ServerDescription] },
-    stale: false,
-    compatible: true,
-    heartbeatFrequencyMS: 10000,
-    localThresholdMS: 15,
-    setName: null,
-    maxElectionId: null,
-    maxSetVersion: null,
-    commonWireVersion: 0,
-    logicalSessionTimeoutMinutes: null
-  },
-  code: undefined,
-  cause: TopologyDescription {
-    type: 'Unknown',
-    servers: Map(1) { 'localhost:27017' => [ServerDescription] },
-    stale: false,
-    compatible: true,
-    heartbeatFrequencyMS: 10000,
-    localThresholdMS: 15,
-    setName: null,
-    maxElectionId: null,
-    maxSetVersion: null,
-    commonWireVersion: 0,
-    logicalSessionTimeoutMinutes: null
-  }
+node:internal/modules/cjs/loader:1459
+  throw err;
+  ^
+
+Error: Cannot find module 'dotenv'
+Require stack:
+- C:\Users\aaron\Downloads\ojeyt-tracker-v1-main\ojeyt-tracker-v1-main\server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1456:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+    at Module._load (node:internal/modules/cjs/loader:1242:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1556:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\aaron\Downloads\ojeyt-tracker-v1-main\ojeyt-tracker-v1-main\server.js:6:1)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'C:\\Users\\aaron\\Downloads\\ojeyt-tracker-v1-main\\ojeyt-tracker-v1-main\\server.js'
+  ]
 }
+
+Node.js v24.14.1

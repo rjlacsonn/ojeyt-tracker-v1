@@ -3,6 +3,8 @@ const path = require('path');
 const model = require('../public/js/documents-model.js');
 const source = fs.readFileSync(path.join(__dirname, '../public/js/enrollment.js'), 'utf8');
 const rosterMigration = fs.readFileSync(path.join(__dirname, '../supabase-student-roster-management-migration.sql'), 'utf8');
+const coordinatorLockMigration = fs.readFileSync(path.join(__dirname, '../supabase-lock-student-coordinator-migration.sql'), 'utf8');
+const profilePictureMigration = fs.readFileSync(path.join(__dirname, '../supabase-student-profile-picture-migration.sql'), 'utf8');
 
 function createApp(role = 'student', options = {}) {
   const user = { id: role, accountType: role, accountStatus: role === 'student' ? 'pending' : 'active' };
@@ -63,6 +65,13 @@ async function runTests() {
     assert(a.user.recipientName === 'Maam Geece' && a.user.accountStatus === 'active', 'Student was not activated');
     assert(a.state.notices.some(message => message.includes('tracker is now active')), 'Immediate access not confirmed');
   });
+  await test('Professor completion uses the current active requirement count', async () => {
+    model.setItems([{ id: 'application', number: 4, name: 'Application' }, { id: 'waiver', number: 10, name: 'Waiver' }]);
+    const dynamicComplete = { ...completed, approved_requirements: 2 };
+    const a = createApp('professor', { roster: [dynamicComplete] }); await a.api.openProfessor();
+    assert(a.get('professor-students-content').innerHTML.includes('OJT complete'), 'Dynamic requirement count was ignored');
+    model.resetItems();
+  });
   await test('Invalid coordinator code never reaches Supabase', async () => {
     const a = createApp(); await a.api.joinProfessor('bad');
     assert(!a.state.calls.length && a.get('student-approval-content').innerHTML.includes('valid coordinator code'), 'Invalid code accepted');
@@ -76,7 +85,7 @@ async function runTests() {
   await test('Professor sees coordinator code and connected students', async () => {
     const a = createApp('professor', { roster: [request] }); await a.api.openProfessor();
     const html = a.get('professor-students-content').innerHTML;
-    assert(html.includes('ABC123') && html.includes('0/10 documents · 0/200h') && html.includes('Student A'), 'Connected student missing');
+    assert(html.includes('ABC123') && html.includes('0 / 10 approved') && html.includes('0/200h') && html.includes('Student A'), 'Connected student missing');
     assert(!html.includes('Approve student') && !html.includes('Waiting for approval'), 'Manual approval UI still visible');
   });
   await test('Roster query failure preserves coordinator code without false empty counts', async () => {
@@ -98,7 +107,7 @@ async function runTests() {
     const a = createApp('professor', { roster: [{ ...request }] });
     a.state.rpcFailures.ojt_document_context = 'Connection lost'; await a.api.openProfessor();
     const html = a.get('professor-students-content').innerHTML;
-    assert(html.includes('Unavailable') && html.includes('Student A') && html.includes('0/10 documents · 0/200h'), 'Roster hidden by code failure');
+    assert(html.includes('Unavailable') && html.includes('Student A') && html.includes('0 / 10 approved') && html.includes('0/200h'), 'Roster hidden by code failure');
     assert(!html.includes('Loading…'), 'Code remains loading after failure');
   });
   await test('Refresh recovers from roster error and shows genuine empty state', async () => {
@@ -115,6 +124,17 @@ async function runTests() {
     const a = createApp('professor', { roster: [{ ...request, full_name: '<script>bad</script>' }] }); await a.api.openProfessor();
     assert(!a.get('professor-students-content').innerHTML.includes('<script>bad'), 'Unsafe student name');
   });
+  await test('Professor roster displays uploaded student pictures with safe fallbacks', async () => {
+    const picture = 'https://project.supabase.co/storage/v1/object/public/profile-pictures/student-a/avatar.jpg';
+    const a = createApp('professor', { roster: [{ ...request, profile_picture_url: picture }] });
+    await a.api.openProfessor();
+    let html = a.get('professor-students-content').innerHTML;
+    assert(html.includes(`src="${picture}"`) && html.includes('<span>SA</span>'), 'Uploaded profile picture or initials fallback missing');
+    a.state.roster[0].profile_picture_url = 'javascript:alert(1)'; await a.api.openProfessor();
+    html = a.get('professor-students-content').innerHTML;
+    assert(!html.includes('javascript:') && html.includes('<span>SA</span>'), 'Unsafe profile picture URL was rendered');
+    assert(profilePictureMigration.includes('p.profile_picture_url::text'), 'Roster migration does not return the profile picture');
+  });
   await test('Professor searches students by name or email', async () => {
     const first = { ...request, email: 'alpha@school.edu' };
     const second = { ...request, student_id: 'student-b', full_name: 'Maria Santos', email: 'maria@example.edu' };
@@ -124,6 +144,18 @@ async function runTests() {
     assert(html.includes('Maria Santos') && !html.includes('Student A'), 'Name search returned the wrong students');
     a.api.setSearch('alpha@school.edu'); html = a.get('professor-student-results').innerHTML;
     assert(html.includes('Student A') && !html.includes('Maria Santos'), 'Email search returned the wrong students');
+  });
+  await test('Professor can switch between all, in-progress and completed student views', async () => {
+    const a = createApp('professor', { roster: [{ ...request }, { ...completed, student_id: 'student-b', full_name: 'Finished Student' }] });
+    await a.api.openProfessor();
+    let html = a.get('professor-students-content').innerHTML;
+    assert(html.includes('All students') && html.includes('Student A') && html.includes('Finished Student'), 'All-students view missing');
+    a.api.setView('complete'); html = a.get('professor-student-results').innerHTML;
+    assert(html.includes('Finished Student') && !html.includes('Student A'), 'Completed view returned wrong students');
+    a.api.setView('progress'); html = a.get('professor-student-results').innerHTML;
+    assert(html.includes('Student A') && !html.includes('Finished Student'), 'In-progress view returned wrong students');
+    a.api.setView('all');
+    assert(a.get('professor-student-results').innerHTML.includes('Finished Student'), 'All-students view did not restore roster');
   });
   await test('Only completed students have a removal control', async () => {
     const a = createApp('professor', { roster: [{ ...request }, { ...completed, student_id: 'student-b', full_name: 'Student B' }] });
@@ -137,7 +169,7 @@ async function runTests() {
     const hoursOnly = { ...request, student_id: 'student-b', full_name: 'Student B', approved_requirements: 9, logged_hours: 200, is_complete: false };
     const a = createApp('professor', { roster: [docsOnly, hoursOnly] }); await a.api.openProfessor();
     const html = a.get('professor-students-content').innerHTML;
-    assert(!html.includes('OJT complete') && !html.includes('Remove student'), 'Partial completion was marked complete');
+    assert(!html.includes('doc-status-approved">OJT complete') && !html.includes('Remove student'), 'Partial completion was marked complete');
     a.api.openRemoval('student-a');
     assert(!a.get('professor-students-content').innerHTML.includes('Remove completed student?'), 'Documents-only completion allowed removal');
   });
@@ -154,6 +186,11 @@ async function runTests() {
     assert(rosterMigration.includes("approval_status = 'approved' and archived_at is null"), 'Archived enrollment still grants tracker access');
     assert(rosterMigration.includes('where student_id = auth.uid() and archived_at is null'), 'Archived enrollment still appears in account context');
     assert(rosterMigration.includes("approval_status = 'approved', archived_at = null"), 'Coordinator code does not restore archived enrollment');
+  });
+  await test('Active students cannot replace their coordinator without disconnection', async () => {
+    assert(coordinatorLockMigration.includes('existing.archived_at is null'), 'Active enrollment is not checked');
+    assert(coordinatorLockMigration.includes('Your coordinator is already assigned'), 'Coordinator replacement is not rejected');
+    assert(coordinatorLockMigration.includes('archived_at = null'), 'Disconnected student cannot reconnect');
   });
   await test('Removal confirmation can be cancelled without changing the roster', async () => {
     const a = createApp('professor', { roster: [{ ...completed }] }); await a.api.openProfessor();

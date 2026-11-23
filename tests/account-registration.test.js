@@ -10,6 +10,7 @@ async function runTests() {
   const student = { accountType: 'student', accountStatus: 'active' };
   const pending = { accountType: 'student', accountStatus: 'pending' };
   const professor = { accountType: 'professor', accountStatus: 'active' };
+  const administrator = { accountType: 'admin', accountStatus: 'active' };
   function makeAuth(session = { access_token: 'test' }) {
     const calls = [];
     const client = {
@@ -32,6 +33,14 @@ async function runTests() {
   await test('Professor lands on Students without student-only pages', async () => {
     assert(access.home(professor) === 'student-approvals' && access.canVisit(professor, 'document-review') && access.canVisit(professor, 'student-approvals'), 'Wrong professor home');
     for (const page of ['dashboard', 'documents', 'badges', 'history']) assert(!access.canVisit(professor, page), `Professor can visit ${page}`);
+  });
+  await test('Administrator lands on Administration without member pages', async () => {
+    assert(access.home(administrator) === 'admin' && access.canVisit(administrator, 'admin'), 'Wrong administrator home');
+    for (const page of ['dashboard', 'documents', 'student-approvals', 'document-review']) {
+      assert(!access.canVisit(administrator, page), `Administrator can visit ${page}`);
+    }
+    const role = await access.load({ rpc: async () => ({ data: { account_type: 'admin', status: 'active' } }) });
+    assert(role.accountType === 'admin' && role.accountStatus === 'active', 'Administrator context rejected');
   });
   await test('Unconfirmed account fails closed', async () => {
     assert(access.home({}) === 'account-unavailable' && !access.canVisit({}, 'document-review') && !access.canVisit({}, 'dashboard'), 'Unknown account granted access');

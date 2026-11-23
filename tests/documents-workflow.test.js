@@ -11,8 +11,13 @@ function createApp(options = {}) {
   };
   const user = { id: 'student-a' };
   const context = { is_coordinator: false, recipient_id: 'professor', recipient_name: 'Professor Test', ...options.context };
-  const state = { rows: options.rows || [], calls: [], notices: [], registrationFails: false, uploadFails: false,
-    deleteStale: false, queryError: null, deferQuery: null, students: options.students || [], rosterError: null };
+  const rows = options.rows || [];
+  const defaultStudents = [...new Map(rows.map(row => [row.user_id, {
+    student_id: row.user_id, full_name: row.student_name, email: row.student_email,
+  }])).values()];
+  const state = { rows, calls: [], notices: [], registrationFails: false, uploadFails: false,
+    deleteStale: false, queryError: null, deferQuery: null,
+    students: options.students === undefined ? defaultStudents : options.students, rosterError: null };
   const storage = {
     async upload(path, file, config) { state.calls.push(['upload', path, config]); return { error: state.uploadFails ? { message: 'Storage full' } : null }; },
     async remove(paths) { state.calls.push(['storage-remove', paths]); return { error: null }; },
@@ -23,6 +28,10 @@ function createApp(options = {}) {
     async rpc(name, args) {
       state.calls.push([name, args]);
       if (name === 'ojt_document_context') return { data: { ...context }, error: null };
+      if (name === 'ojt_document_requirements') return { data: model.items.map((item, index) => ({
+        requirement_id: item.id, requirement_name: item.name, requirement_number: item.number,
+        display_order: index + 1, is_active: true,
+      })), error: null };
       if (name === 'ojt_list_students') return { data: state.students, error: state.rosterError };
       if (name === 'ojt_join_coordinator') { context.recipient_id = 'professor'; context.recipient_name = 'Professor Test'; return { error: null }; }
       if (name === 'ojt_register_document') {
@@ -118,10 +127,26 @@ async function runTests() {
     const a = await ready({ context: { recipient_id: null } }); await a.api.connect(' abc123 ');
     assert(a.state.calls.some(c => c[0] === 'ojt_join_coordinator' && c[1].p_code === 'ABC123'), 'Code not normalized');
   });
+  await test('Connected students see a locked coordinator instead of a change option', async () => {
+    const a = await ready();
+    const html = a.element('documents-content').innerHTML;
+    assert(html.includes('Coordinator assigned') && html.includes('contact your professor or the project administrator'), 'Assigned coordinator guidance missing');
+    assert(!html.includes('Change coordinator') && !html.includes('id="coordinator-code"'), 'Coordinator change control remained visible');
+    await a.api.connect('ZZZZZZ');
+    assert(!a.state.calls.some(call => call[0] === 'ojt_join_coordinator'), 'Connected student attempted a coordinator change');
+  });
   await test('Submit sends only editable records', async () => {
     const a = await ready({ rows: [row(), { ...row('approved'), id: 'approved' }] }); await a.api.submit();
     const ids = a.state.calls.find(c => c[0] === 'ojt_submit_documents')[1].p_ids;
     assert(ids.length === 1 && ids[0] === 'file-a', 'Approved file resubmitted');
+  });
+  await test('Submit ignores preserved drafts from removed requirements', async () => {
+    model.setItems(model.items.filter(item => item.id !== 'confidentiality'));
+    const a = await ready({ rows: [row(), { ...row('returned'), id: 'old-file', requirement_id: 'confidentiality' }] });
+    await a.api.submit();
+    const ids = a.state.calls.find(call => call[0] === 'ojt_submit_documents')[1].p_ids;
+    assert(ids.length === 1 && ids[0] === 'file-a', 'Removed requirement was submitted');
+    model.resetItems();
   });
   await test('Submitted files cannot be removed', async () => {
     const a = await ready({ rows: [row('submitted')] }); await a.api.remove('file-a');
@@ -202,6 +227,17 @@ async function runTests() {
     assert(html.includes('data-review-student="student-a"') && html.includes('data-review-student="student-b"'), 'Student review sections missing');
     assert(html.includes('2 files · 2 awaiting review') && html.includes('1 file · 1 awaiting review'), 'Per-student file counts missing');
     assert(html.indexOf('Student A') < html.indexOf('data-id="file-a"') && html.indexOf('Student B') < html.indexOf('data-id="file-b"'), 'Files not placed under student identity');
+  });
+  await test('Removed students and their pending files disappear from Review', async () => {
+    const a = await openReview({
+      students: [{ student_id: 'student-a', full_name: 'Active Student', email: 'active@example.edu' }],
+      rows: [row('submitted'), { ...row('returned'), id: 'archived-file', user_id: 'student-b',
+        student_name: 'Removed Student', student_email: 'removed@example.edu' }],
+    });
+    const progress = a.element('doc-review-progress').innerHTML;
+    const files = a.element('doc-review-list').innerHTML;
+    assert(progress.includes('Active Student') && !progress.includes('Removed Student'), 'Removed student progress remained visible');
+    assert(files.includes('data-id="file-a"') && !files.includes('data-id="archived-file"'), 'Removed student file remained visible');
   });
   await test('Status filtering does not hide overall requirement progress', async () => {
     const a = await openReview({ rows: [row('approved')] });

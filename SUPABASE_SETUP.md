@@ -46,3 +46,30 @@ from public.ojt_admins. The directory covers the entire Supabase project.
 Disconnect enrollment is an administrative correction for an incorrect class
 connection. It preserves student records. Recent actions lists the last 50
 administrative changes with actor, target and timestamp.
+
+If an administrator sees **Account access unavailable**, rerun
+`supabase-admin-migration.sql`. The migration is safe to rerun and restores the
+administrator-aware account context without changing accounts or audit records.
+
+Apply `supabase-archived-review-cleanup-migration.sql` after the admin migration.
+It removes archived students from the professor's Review page and blocks access to
+their stored submissions while preserving the underlying records.
+
+Then apply `supabase-admin-document-requirements-migration.sql`. It adds reversible
+administrator controls for the student document checklist. Removing a requirement
+deactivates it without deleting submissions; restoring it makes the preserved section
+and its files count toward progress again.
+
+Finally apply `supabase-admin-badges-migration.sql`. It preserves the current badge
+collection and lets administrators add, customize, remove, and restore badges and XP
+rewards. Suggested badges remain optional until an administrator selects Use suggestion.
+
+Apply `supabase-lock-student-coordinator-migration.sql` last. Connected students can
+view their assigned coordinator but cannot replace it with another code. An administrator
+must use Disconnect enrollment before the student can join a different coordinator.
+Apply `supabase-student-profile-picture-migration.sql` afterward so the professor's
+Students page can display pictures already uploaded to student profiles. The roster
+continues to return only students actively enrolled with the signed-in professor.
+The migration is safe to rerun. If Documents reports permission denied for
+`ojt_document_requirements`, rerun the latest copy to install the active-requirement
+read policy, then refresh the browser.

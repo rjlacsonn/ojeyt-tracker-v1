@@ -8,6 +8,16 @@ function runTests() {
     assert(model.items.length === 10 && model.items[0].number === 4 && model.items[9].number === 13, 'Incorrect checklist');
     assert(new Set(model.items.map(item => item.id)).size === 10, 'Duplicate requirement IDs');
   });
+  test('Administrator-managed requirements replace and restore the active checklist', () => {
+    model.setItems([{ requirement_id: 'application', requirement_number: 4, requirement_name: 'Renamed Application' },
+      { requirement_id: 'custom-report', requirement_number: 20, requirement_name: 'Weekly Report' }]);
+    const summary = model.summary([{ requirement_id: 'custom-report', status: 'approved' },
+      { requirement_id: 'confidentiality', status: 'returned' }]);
+    assert(model.items.length === 2 && summary.approved === 1 && summary.ready === 0 &&
+      summary.items[1].name === 'Weekly Report', 'Managed checklist was not applied');
+    model.resetItems();
+    assert(model.items.length === 10 && model.items.some(item => item.id === 'confidentiality'), 'Default checklist was not restored');
+  });
   test('All configured file formats accepted', () => {
     for (const [ext, type] of Object.entries(model.types)) assert(!model.validate(file(`form.${ext}`, 100, type)), `Rejected ${ext}`);
   });

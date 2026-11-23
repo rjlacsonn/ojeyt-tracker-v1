@@ -12,19 +12,33 @@ alter table public.ojt_admins enable row level security;
 alter table public.ojt_admin_events enable row level security;
 revoke all on public.ojt_admins, public.ojt_admin_events from public, anon, authenticated;
 
--- Preserve the installed professor/student access rules.
-do $$ begin
-  if to_regprocedure('public.ojt_member_context()') is null then
-    alter function public.ojt_account_context() rename to ojt_member_context;
+-- Resolve every role directly so reapplying another migration cannot break the
+-- administrator branch or leave it dependent on a renamed helper function.
+create or replace function public.ojt_account_context()
+returns jsonb language plpgsql stable security definer set search_path='' as $$
+declare
+  registration public.ojt_professor_requests;
+  enrollment public.ojt_enrollments;
+  professor_name text;
+begin
+  if auth.uid() is null then raise exception 'Sign in to confirm your account access.'; end if;
+  if exists(select 1 from public.ojt_admins where user_id=auth.uid()) then
+    return jsonb_build_object('account_type','admin','status','active');
   end if;
+  select * into registration from public.ojt_professor_requests where user_id=auth.uid();
+  if public.ojt_is_coordinator() then
+    return jsonb_build_object('account_type','professor','status','active',
+      'institution',coalesce(registration.institution,''),'department',coalesce(registration.department,''));
+  end if;
+  select * into enrollment from public.ojt_enrollments
+    where student_id=auth.uid() and archived_at is null;
+  select display_name into professor_name from public.ojt_coordinators
+    where user_id=enrollment.coordinator_id;
+  return jsonb_build_object('account_type','student',
+    'status',case when enrollment.approval_status='approved' then 'active' else 'pending' end,
+    'recipient_id',enrollment.coordinator_id,'recipient_name',professor_name,
+    'institution','','department','');
 end $$;
-revoke all on function public.ojt_member_context() from public, anon, authenticated;
-create or replace function public.ojt_account_context() returns jsonb
-language sql stable security definer set search_path='' as $$
-  select case when exists(select from public.ojt_admins where user_id=auth.uid())
-    then jsonb_build_object('account_type','admin','status','active')
-    else public.ojt_member_context() end
-$$;
 
 create or replace function public.ojt_admin_overview() returns jsonb
 language plpgsql stable security definer set search_path='' as $$
