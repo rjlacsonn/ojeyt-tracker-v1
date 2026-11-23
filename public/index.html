@@ -193,6 +193,7 @@
         <span class="brand-name">OJeyT Tracker</span>
       </button>
       <nav class="top-nav" aria-label="Primary navigation">
+        <button class="nav-btn" type="button" data-page="admin" onclick="navTo('admin')" hidden>Administration</button>
         <button class="nav-btn active" type="button" data-page="dashboard" onclick="navTo('dashboard')">
           <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg></span><span>Dashboard</span>
         </button>
@@ -239,6 +240,18 @@
   <main id="main-content-container" tabindex="-1" class="app-shell" style="display:none;">
 
     <!-- ===== DASHBOARD ===== -->
+    <section id="page-admin" class="page app-page" aria-label="Administration">
+      <div class="page-heading"><h1>Administration</h1><button class="doc-button" id="admin-refresh">Refresh</button></div>
+      <p id="admin-status" role="status"></p>
+      <div id="admin-stats" class="doc-summary"></div>
+      <article class="panel admin-panel"><h2>Account directory</h2>
+        <div class="doc-review-filters"><label>Search accounts<input id="admin-search" type="search" placeholder="Name, email or coordinator"></label>
+        <label>Role<select id="admin-role"><option value="">All roles</option><option>Student</option><option>Professor</option><option>Administrator</option></select></label></div>
+        <div id="admin-directory"></div>
+      </article>
+      <article class="panel admin-panel"><h2>Recent administrative actions</h2><div id="admin-log"></div></article>
+      <dialog id="admin-confirm" aria-labelledby="admin-confirm-title"><form method="dialog"><h2 id="admin-confirm-title"></h2><p id="admin-confirm-detail"></p><div class="modal-actions"><button class="doc-button" value="cancel" autofocus>Cancel</button><button class="doc-button doc-button-primary" value="apply">Confirm</button></div></form></dialog>
+    </section>
     <section id="page-dashboard" class="page app-page" aria-label="Dashboard">
       <div class="page-heading dashboard-heading">
         <div>
@@ -630,6 +643,7 @@
   <script src="js/shift-activity.js"></script>
   <script src="js/auth-interface.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/admin.js"></script>
 
 </body>
 </html>

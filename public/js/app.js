@@ -34,6 +34,8 @@ function navTo(page) {
   }
 
   currentPage = page;
+  if (page === 'admin') AdminDashboard.load();
+  else AdminDashboard.reset();
   if (page === 'dashboard') {
     updateDashboard();
     setDefaultShiftDate();
@@ -144,7 +146,7 @@ async function showAppUI() {
 
   // Document permissions are loaded separately from the student's attendance data.
   Enrollment.reset();
-  if (currentUser.accountType === 'unavailable' || currentUser.accountStatus !== 'active') Documents.reset();
+  if (currentUser.accountType === 'admin' || currentUser.accountType === 'unavailable' || currentUser.accountStatus !== 'active') Documents.reset();
   else await Documents.initializeAccount();
   applyAccountNavigation();
 
@@ -163,6 +165,7 @@ function applyAccountNavigation() {
     ? 'Professor'
     : currentUser.accountType === 'student' ? `Student${currentUser.accountStatus === 'pending' ? ' · Pending approval' : ''}` : 'Access unavailable';
   const hours = document.getElementById('student-hours-settings');
+  if (role && currentUser.accountType === 'admin') role.textContent = 'Administrator';
   if (hours) hours.hidden = currentUser.accountType !== 'student';
 }
 
@@ -193,6 +196,7 @@ async function refreshAccountAccess(event) {
 
 // === LOGOUT ===
 async function logout() {
+  AdminDashboard.reset();
   Enrollment.reset();
   Documents.reset();
   await auth.logout();

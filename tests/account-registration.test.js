@@ -41,7 +41,7 @@ async function runTests() {
     assert(role.accountType === 'student' && role.accountStatus === 'pending' && role.recipientName === 'Maam Geece', 'Context not used');
   });
   await test('Invalid context and failed RPC do not default to a student role', async () => {
-    for (const result of [{ data: { account_type: 'admin', status: 'active' } }, { data: { account_type: 'student', status: 'unknown' } }, { error: { message: 'Unavailable' } }]) {
+    for (const result of [{ data: { account_type: 'unknown', status: 'active' } }, { data: { account_type: 'student', status: 'unknown' } }, { error: { message: 'Unavailable' } }]) {
       let failed = false; try { await access.load({ rpc: async () => result }); } catch { failed = true; }
       assert(failed, 'Invalid context trusted');
     }

@@ -29,3 +29,20 @@ search, combined document-and-hours completion checks, and safe removal of compl
 student cards.
 Only professors allocate students' required hours. Professors activate automatically;
 students activate by entering a valid professor code. See [DOCUMENTS_SETUP.md](DOCUMENTS_SETUP.md).
+
+## Administrator setup
+
+After applying the roster management migration, run `supabase-admin-migration.sql`
+in the Supabase SQL Editor and deploy the updated frontend. Register a dedicated
+account, confirm its email, and verify its UUID in Authentication → Users.
+Grant administration from the SQL Editor using that verified UUID:
+
+```sql
+insert into public.ojt_admins(user_id) values ('YOUR-VERIFIED-USER-UUID');
+```
+
+Sign in again to open Administration. To revoke access, delete that UUID's row
+from public.ojt_admins. The directory covers the entire Supabase project.
+Disconnect enrollment is an administrative correction for an incorrect class
+connection. It preserves student records. Recent actions lists the last 50
+administrative changes with actor, target and timestamp.

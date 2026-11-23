@@ -2,11 +2,13 @@
 const AccountAccess = (() => {
   const studentPages = ['dashboard', 'history', 'documents', 'badges', 'settings'];
   function home(user) {
+    if (user?.accountType === 'admin' && user.accountStatus === 'active') return 'admin';
     if (user?.accountType === 'student') return user.accountStatus === 'active' ? 'dashboard' : 'student-home';
     if (user?.accountType === 'professor' && user.accountStatus === 'active') return 'student-approvals';
     return 'account-unavailable';
   }
   function canVisit(user, page) {
+    if (user?.accountType === 'admin' && user.accountStatus === 'active') return ['admin', 'settings'].includes(page);
     if (user?.accountType === 'student') return user.accountStatus === 'active'
       ? studentPages.includes(page) : ['student-home', 'settings'].includes(page);
     if (user?.accountType === 'professor' && user.accountStatus === 'active') {
@@ -17,7 +19,8 @@ const AccountAccess = (() => {
   async function load(client) {
     const { data, error } = await client.rpc('ojt_account_context');
     if (error) throw error;
-    if (!data || !['student', 'professor'].includes(data.account_type) ||
+    if (!data || !['student', 'professor', 'admin'].includes(data.account_type) ||
+        (data.account_type === 'admin' && data.status !== 'active') ||
         !['active', 'pending'].includes(data.status)) {
       throw new Error('Account access could not be confirmed.');
     }
