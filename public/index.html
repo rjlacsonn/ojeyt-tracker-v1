@@ -286,6 +286,14 @@
       </article>
       <article class="panel admin-panel"><h2>Recent administrative actions</h2><div id="admin-log"></div></article>
       <dialog id="admin-confirm" aria-labelledby="admin-confirm-title"><form method="dialog"><h2 id="admin-confirm-title"></h2><p id="admin-confirm-detail"></p><div class="modal-actions"><button class="doc-button" value="cancel" autofocus>Cancel</button><button class="doc-button doc-button-primary" value="apply">Confirm</button></div></form></dialog>
+      <dialog id="admin-coordinator-confirm" aria-labelledby="admin-coordinator-title"><form method="dialog">
+        <h2 id="admin-coordinator-title">Change student coordinator?</h2>
+        <p id="admin-coordinator-student"></p>
+        <p>Currently assigned to: <strong id="admin-coordinator-current"></strong></p>
+        <label class="admin-coordinator-label">New coordinator<select id="admin-coordinator-select" required aria-describedby="admin-coordinator-detail"></select></label>
+        <p id="admin-coordinator-detail">The student will move to the selected coordinator. Their previous coordinator's submissions will move with them, keeping approval status and feedback. Logged hours and the assigned hour target will be preserved.</p>
+        <div class="modal-actions"><button class="doc-button" value="cancel" formnovalidate autofocus>Cancel</button><button id="admin-coordinator-apply" class="doc-button doc-button-primary" value="apply" disabled>Confirm change</button></div>
+      </form></dialog>
       <dialog id="admin-delete-confirm" aria-labelledby="admin-delete-confirm-title"><form method="dialog">
         <h2 id="admin-delete-confirm-title">Permanently delete this user?</h2>
         <p id="admin-delete-confirm-detail"></p>
@@ -687,7 +695,7 @@
   <script src="js/shift-activity.js"></script>
   <script src="js/auth-interface.js"></script>
   <script src="js/app.js"></script>
-  <script src="js/admin.js?v=super-admin-controls-2"></script>
+  <script src="js/admin.js?v=coordinator-change-1"></script>
   <script src="js/admin-badges.js"></script>
 
 </body>

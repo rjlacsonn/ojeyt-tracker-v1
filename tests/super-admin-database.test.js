@@ -42,7 +42,8 @@ async function runTests() {
       'student-progress-migration', 'short-coordinator-codes-migration', 'auto-approve-code-migration',
       'student-roster-management-migration', 'admin-migration', 'archived-review-cleanup-migration',
       'admin-document-requirements-migration', 'admin-badges-migration', 'lock-student-coordinator-migration',
-      'student-profile-picture-migration', 'admin-account-deletion-migration', 'super-admin-migration'];
+      'student-profile-picture-migration', 'admin-account-deletion-migration', 'super-admin-migration',
+      'admin-coordinator-change-migration'];
     for (const name of migrations) {
       try { await db.exec(fs.readFileSync(path.join(root, `supabase-${name}.sql`), 'utf8')); }
       catch (error) { throw new Error(`${name}: ${error.message}`, { cause: error }); }
@@ -144,6 +145,57 @@ async function runTests() {
       await denied(`select public.ojt_admin_delete_account('${ids.candidate}')`);
       await actor('super');
       assert.equal((await db.query('select public.ojt_account_context() as context')).rows[0].context.admin_role, 'super_admin');
+    });
+    const replacementId = '00000000-0000-4000-8000-000000000009';
+    await test('Super admin can assign an unconnected student to a professor', async () => {
+      await db.exec('reset role');
+      await db.exec("select set_config('request.jwt.claim.sub', '', false)");
+      await db.query('insert into auth.users(id,email,raw_user_meta_data) values($1,$2,$3)', [replacementId, 'replacement@example.edu',
+        { full_name: 'Replacement', account_type: 'professor', institution: 'School' }]);
+      await db.query('update public.profiles set required_hours = 400, required_hours_assigned_at = now() where id = $1', [ids.candidate]);
+      await db.query("insert into public.shifts(user_id,date,total_hours) values($1,'2026-01-01',8)", [ids.candidate]);
+      await actor('super');
+      await db.exec(`select public.ojt_admin_set_account_access('${ids.professor}', 'Enable user')`);
+      await db.query('select public.ojt_admin_change_coordinator($1,$2,null)', [ids.candidate, ids.professor]);
+      await actor('candidate');
+      assert.equal((await db.query('select public.ojt_account_context() as context')).rows[0].context.recipient_id, ids.professor);
+    });
+    await test('Regular admin reassigns enrollment and submissions while preserving hours and review history', async () => {
+      await actor('super'); await db.exec('reset role');
+      await db.query(`insert into public.ojt_documents(user_id, requirement_id, file_path, file_name, file_size, content_type,
+        coordinator_id,status,feedback,reviewed_at) values($1,'application',$2,'approved.pdf',100,'application/pdf',$3,'approved','Reviewed already',now())`,
+      [ids.candidate, `${ids.candidate}/application/approved.pdf`, ids.professor]);
+      await actor('admin');
+      await db.query('select public.ojt_admin_change_coordinator($1,$2,$3)', [ids.candidate, replacementId, ids.professor]);
+      await db.exec('reset role');
+      const enrollment = (await db.query('select * from public.ojt_enrollments where student_id = $1', [ids.candidate])).rows[0];
+      assert.equal(enrollment.coordinator_id, replacementId); assert.equal(enrollment.approval_status, 'approved');
+      const doc = (await db.query('select * from public.ojt_documents where user_id = $1', [ids.candidate])).rows[0];
+      assert.equal(doc.coordinator_id, replacementId); assert.equal(doc.status, 'approved');
+      assert.equal(doc.feedback, 'Reviewed already'); assert(doc.reviewed_at);
+      assert.equal((await db.query('select required_hours from public.profiles where id = $1', [ids.candidate])).rows[0].required_hours, 400);
+      assert.equal(Number((await db.query('select sum(total_hours) as hours from public.shifts where user_id = $1', [ids.candidate])).rows[0].hours), 8);
+      assert.equal((await db.query("select * from public.ojt_admin_events where action = 'Changed student coordinator' and actor = $1", [ids.admin])).rows.length, 1);
+      await actor('professor');
+      assert.equal((await db.query('select * from public.ojt_documents where user_id = $1', [ids.candidate])).rows.length, 0);
+      await db.exec('reset role');
+      await db.query("select set_config('request.jwt.claim.sub', $1, false)", [replacementId]);
+      await db.exec('set role authenticated');
+      assert.equal((await db.query('select * from public.ojt_documents where user_id = $1', [ids.candidate])).rows.length, 1);
+    });
+    await test('Reassignment rejects non-admins, invalid targets, disabled professors and stale assignments', async () => {
+      await actor('candidate');
+      await assert.rejects(() => db.query('select public.ojt_admin_change_coordinator($1,$2,$3)', [ids.candidate, ids.professor, replacementId]));
+      await actor('admin');
+      await assert.rejects(() => db.query('select public.ojt_admin_change_coordinator($1,$2,$3)', [ids.candidate, ids.professor, ids.professor]));
+      await assert.rejects(() => db.query('select public.ojt_admin_change_coordinator($1,$2,null)', [ids.super, ids.professor]));
+      await assert.rejects(() => db.query('select public.ojt_admin_change_coordinator($1,$2,$3)', [ids.candidate, ids.admin, replacementId]));
+      await db.exec(`select public.ojt_admin_set_account_access('${ids.professor}', 'Disable user')`);
+      await assert.rejects(() => db.query('select public.ojt_admin_change_coordinator($1,$2,$3)', [ids.candidate, ids.professor, replacementId]));
+      await actor('super');
+      await db.exec(`select public.ojt_admin_set_account_access('${ids.admin}', 'Disable user')`);
+      await actor('admin');
+      await assert.rejects(() => db.query('select public.ojt_admin_change_coordinator($1,$2,$3)', [ids.candidate, ids.professor, replacementId]));
     });
     return passed;
   } finally { await db.close(); }

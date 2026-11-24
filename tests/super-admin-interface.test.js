@@ -18,6 +18,9 @@ function dashboard(adminRole) {
     { id: 'admin', name: 'Other Admin', email: 'admin@example.edu', role: 'Administrator' },
     { id: 'professor', name: 'Professor', email: 'professor@example.edu', role: 'Professor' },
     { id: 'student', name: 'Student', email: 'student@example.edu', role: 'Student', disabled: true },
+    { id: 'student-active', name: 'Active Student', email: 'active@example.edu', role: 'Student', coordinator_id: 'professor', coordinator: 'Professor' },
+    { id: 'professor-new', name: 'New Professor', email: 'new@example.edu', role: 'Professor' },
+    { id: 'professor-disabled', name: 'Disabled Professor', email: 'disabled@example.edu', role: 'Professor', disabled: true },
   ];
   const client = { async rpc(name, args) {
     calls.push([name, args]);
@@ -69,6 +72,39 @@ async function runTests() {
     await new Promise(resolve => setImmediate(resolve));
     assert.deepEqual(d.calls.find(([name]) => name === 'ojt_admin_set_account_access')[1],
       { p_user: 'professor', p_action: 'Disable user' });
+  });
+  await test('Both admin roles can choose and confirm a new student coordinator', async () => {
+    for (const role of ['admin', 'super_admin']) {
+      const d = dashboard(role); await d.api.load();
+      assert(d.get('admin-directory').innerHTML.includes('data-account="student-active" data-action="Change coordinator"'));
+      d.click('student-active', 'Change coordinator');
+      assert(d.get('admin-coordinator-confirm').open);
+      const options = d.get('admin-coordinator-select').innerHTML;
+      assert(options.includes('value="professor-new"'));
+      assert(!options.includes('value="professor"') && !options.includes('value="professor-disabled"'));
+      assert(d.get('admin-coordinator-apply').disabled);
+      d.get('admin-coordinator-select').value = 'professor-new';
+      d.get('admin-coordinator-select').onchange();
+      assert(!d.get('admin-coordinator-apply').disabled);
+      d.get('admin-coordinator-confirm').returnValue = 'apply';
+      d.get('admin-coordinator-confirm').onclose();
+      await new Promise(resolve => setImmediate(resolve));
+      assert.deepEqual(d.calls.find(([name]) => name === 'ojt_admin_change_coordinator')[1], {
+        p_student: 'student-active', p_coordinator: 'professor-new', p_expected_coordinator: 'professor',
+      });
+    }
+  });
+  await test('Canceling reassignment or selecting a disabled professor makes no change', async () => {
+    const d = dashboard('admin'); await d.api.load();
+    d.click('student-active', 'Change coordinator');
+    d.get('admin-coordinator-select').value = 'professor-new';
+    d.get('admin-coordinator-confirm').returnValue = 'cancel';
+    d.get('admin-coordinator-confirm').onclose();
+    d.click('student-active', 'Change coordinator');
+    d.get('admin-coordinator-select').value = 'professor-disabled';
+    d.get('admin-coordinator-confirm').returnValue = 'apply';
+    d.get('admin-coordinator-confirm').onclose();
+    assert(!d.calls.some(([name]) => name === 'ojt_admin_change_coordinator'));
   });
   return passed;
 }

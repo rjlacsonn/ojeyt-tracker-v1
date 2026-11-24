@@ -11,6 +11,7 @@ const AdminDashboard = (() => {
     version++; accounts = []; requirements = []; pending = null; busy = false; page = 0; verifiedSuperAdmin = false;
     if (el('confirm').open) el('confirm').close();
     if (el('delete-confirm').open) el('delete-confirm').close();
+    if (el('coordinator-confirm').open) el('coordinator-confirm').close();
     el('refresh').disabled = false;
     for (const id of ['directory', 'requirements', 'stats', 'log', 'status', 'confirm-title', 'confirm-detail']) el(id).replaceChildren();
     el('search').value = ''; el('role').value = ''; el('requirement-add').reset(); el('delete-confirm-input').value = '';
@@ -33,6 +34,7 @@ const AdminDashboard = (() => {
       const administrator = ['Administrator', 'Super Admin'].includes(account.role);
       const canManage = !isCurrentAccount && account.role !== 'Super Admin' && (!administrator || superAdmin());
       const actions = [
+        account.role === 'Student' && canManage && !account.disabled ? `<button class="doc-button" data-account="${esc(account.id)}" data-action="Change coordinator" ${busy ? 'disabled' : ''}>Change coordinator</button>` : '',
         action && canManage && !account.disabled ? `<button class="doc-button" data-account="${esc(account.id)}" data-action="${action}" ${busy ? 'disabled' : ''}>${action}</button>` : '',
         canManage ? `<button class="doc-button" data-account="${esc(account.id)}" data-action="${account.disabled ? 'Enable user' : 'Disable user'}" ${busy ? 'disabled' : ''}>${account.disabled ? 'Enable user' : 'Disable user'}</button>` : '',
         canManage && superAdmin() && administrator ? `<button class="doc-button" data-account="${esc(account.id)}" data-action="Remove admin access" ${busy ? 'disabled' : ''}>Remove admin access</button>` : '',
@@ -169,6 +171,18 @@ const AdminDashboard = (() => {
     if (button.dataset.step) { page += Number(button.dataset.step); directory(); return; }
     const account = accounts.find(item => item.id === button.dataset.account);
     if (!account) return;
+    if (button.dataset.action === 'Change coordinator') {
+      if (account.role !== 'Student' || account.disabled) return;
+      pending = { kind: 'coordinator', student: account.id, expected: account.coordinator_id || null };
+      el('coordinator-student').textContent = `${account.name} (${account.email})`;
+      el('coordinator-current').textContent = account.coordinator || 'Unconnected';
+      const choices = accounts.filter(item => item.role === 'Professor' && !item.disabled && item.id !== account.coordinator_id);
+      el('coordinator-select').innerHTML = `<option value="">${choices.length ? 'Choose a coordinator' : 'No other enabled professors available'}</option>` +
+        choices.map(item => `<option value="${esc(item.id)}">${esc(item.name)} — ${esc(item.email)}</option>`).join('');
+      el('coordinator-select').value = ''; el('coordinator-apply').disabled = true;
+      el('coordinator-confirm').returnValue = ''; el('coordinator-confirm').showModal();
+      return;
+    }
     if (button.dataset.action === 'Delete user') {
       if (!superAdmin()) return;
       pending = { kind: 'delete-account', account };
@@ -208,6 +222,18 @@ const AdminDashboard = (() => {
   el('delete-confirm-input').oninput = () => {
     const expected = pending?.kind === 'delete-account' ? pending.account.email : '';
     el('delete-confirm-apply').disabled = el('delete-confirm-input').value.trim().toLowerCase() !== String(expected).toLowerCase();
+  };
+  el('coordinator-select').onchange = () => {
+    el('coordinator-apply').disabled = !el('coordinator-select').value;
+  };
+  el('coordinator-confirm').onclose = () => {
+    const action = pending; pending = null;
+    const coordinator = el('coordinator-select').value;
+    el('coordinator-select').value = ''; el('coordinator-apply').disabled = true;
+    if (action?.kind !== 'coordinator' || el('coordinator-confirm').returnValue !== 'apply' || busy || !active()) return;
+    if (!accounts.some(item => item.id === coordinator && item.role === 'Professor' && !item.disabled)) return;
+    mutate('ojt_admin_change_coordinator', { p_student: action.student, p_coordinator: coordinator,
+      p_expected_coordinator: action.expected }, 'Student coordinator updated.');
   };
   el('delete-confirm').onclose = () => {
     const action = pending; pending = null;
