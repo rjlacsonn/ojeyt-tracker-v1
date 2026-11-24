@@ -73,3 +73,15 @@ continues to return only students actively enrolled with the signed-in professor
 The migration is safe to rerun. If Documents reports permission denied for
 `ojt_document_requirements`, rerun the latest copy to install the active-requirement
 read policy, then refresh the browser.
+
+Apply `supabase-admin-account-deletion-migration.sql` last to add **Delete user**
+to the Account directory. This action permanently removes the Supabase Auth identity
+and its linked profile, enrollment, shifts, sessions, and document records. The
+administrator must type the account email in the confirmation dialog. The currently
+signed-in administrator cannot delete their own account. The frontend then removes
+the user's OJT documents and profile pictures through the Storage API before deleting
+the Auth identity. If storage cleanup fails, the account is retained and Administration
+reports that cleanup must be retried or checked in Supabase Storage.
+This migration also exempts authenticated administrators from the professor-approval
+restriction during account and file deletion. If an administrator sees a professor
+approval message while deleting, rerun the latest copy of this migration.

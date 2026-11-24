@@ -8,9 +8,10 @@ const AdminDashboard = (() => {
   function reset() {
     version++; accounts = []; requirements = []; pending = null; busy = false; page = 0;
     if (el('confirm').open) el('confirm').close();
+    if (el('delete-confirm').open) el('delete-confirm').close();
     el('refresh').disabled = false;
     for (const id of ['directory', 'requirements', 'stats', 'log', 'status', 'confirm-title', 'confirm-detail']) el(id).replaceChildren();
-    el('search').value = ''; el('role').value = ''; el('requirement-add').reset();
+    el('search').value = ''; el('role').value = ''; el('requirement-add').reset(); el('delete-confirm-input').value = '';
   }
 
   function directory() {
@@ -21,7 +22,12 @@ const AdminDashboard = (() => {
     const first = page * pageSize;
     const rows = matches.slice(first, first + pageSize).map(account => {
       const action = account.role === 'Professor' ? 'Reset coordinator code' : account.role === 'Student' && account.coordinator_id ? 'Disconnect enrollment' : '';
-      return `<tr><th scope="row">${esc(account.name)}<small>${esc(account.email)}</small></th><td>${esc(account.role)}</td><td>${esc(account.coordinator || (account.role === 'Student' ? 'Unconnected' : '—'))}</td><td>${account.role === 'Student' ? esc(account.hours) + ' / ' + esc(account.required_hours ?? 'Unassigned') : '—'}</td><td>${action ? `<button class="doc-button" data-account="${esc(account.id)}" data-action="${action}" ${busy ? 'disabled' : ''}>${action}</button>` : ''}</td></tr>`;
+      const isCurrentAccount = account.id === currentUser?.id;
+      const actions = [
+        action ? `<button class="doc-button" data-account="${esc(account.id)}" data-action="${action}" ${busy ? 'disabled' : ''}>${action}</button>` : '',
+        isCurrentAccount ? '<small>Current account</small>' : `<button class="doc-button student-danger-button" data-account="${esc(account.id)}" data-action="Delete user" ${busy ? 'disabled' : ''}>Delete user</button>`,
+      ].filter(Boolean).join('');
+      return `<tr><th scope="row">${esc(account.name)}<small>${esc(account.email)}</small></th><td>${esc(account.role)}</td><td>${esc(account.coordinator || (account.role === 'Student' ? 'Unconnected' : '—'))}</td><td>${account.role === 'Student' ? esc(account.hours) + ' / ' + esc(account.required_hours ?? 'Unassigned') : '—'}</td><td><div class="admin-account-actions">${actions}</div></td></tr>`;
     });
     el('directory').innerHTML = matches.length ? `<div class="admin-table"><table><thead><tr><th>Account</th><th>Role</th><th>Coordinator</th><th>OJT hours</th><th>Action</th></tr></thead><tbody>${rows.join('')}</tbody></table></div><div class="doc-toolbar"><span>${first + 1}–${Math.min(matches.length, first + pageSize)} of ${matches.length}</span><div><button class="doc-button" data-step="-1" ${page ? '' : 'disabled'}>Previous</button> <button class="doc-button" data-step="1" ${first + pageSize >= matches.length ? 'disabled' : ''}>Next</button></div></div>` : '<p>No accounts match this search.</p>';
   }
@@ -56,7 +62,8 @@ const AdminDashboard = (() => {
       const counts = [['Students', accounts.filter(account => account.role === 'Student').length], ['Professors', accounts.filter(account => account.role === 'Professor').length], ['Files awaiting review', overview.data.awaiting]];
       el('stats').innerHTML = counts.map(([label, count]) => `<div><strong>${esc(count)}</strong><span>${label}</span></div>`).join('');
       el('log').innerHTML = overview.data.events.length ? overview.data.events.map(event => `<p><strong>${esc(event.action)}</strong> · ${esc(event.subject)}<small>${esc(event.actor)} · ${esc(new Date(event.happened_at).toLocaleString())}</small></p>`).join('') : '<p>No administrative actions recorded yet.</p>';
-      busy = false; directory(); requirementList(); el('status').textContent = message;
+      busy = false; directory(); requirementList(); el('status').textContent = '';
+      if (message) showToast(message);
     } catch (error) {
       if (token === version) { reset(); el('status').textContent = error.message || 'Could not load administration.'; }
     } finally { if (token === version) { busy = false; el('refresh').disabled = false; } }
@@ -69,6 +76,34 @@ const AdminDashboard = (() => {
     let resultMessage = message;
     try { const { error } = await supabase.rpc(name, args); if (error) throw error; }
     catch (error) { resultMessage = error.message || 'Could not save the requirement.'; }
+    if (version === token && active()) await load(resultMessage);
+  }
+
+  async function removeStoredFiles(bucket, paths) {
+    for (let index = 0; index < paths.length; index += 100) {
+      const { error } = await supabase.storage.from(bucket).remove(paths.slice(index, index + 100));
+      if (error) throw error;
+    }
+  }
+
+  async function deleteAccount(account) {
+    if (busy || !active() || account.id === currentUser?.id) return;
+    const token = version; busy = true; el('refresh').disabled = true; directory(); requirementList();
+    el('status').textContent = `Deleting ${account.email}…`;
+    let resultMessage = 'User permanently deleted.';
+    try {
+      const { data: paths, error: pathsError } = await supabase.rpc('ojt_admin_account_storage_paths', { p_user: account.id });
+      if (pathsError) throw pathsError;
+      const cleanup = await Promise.allSettled([
+        removeStoredFiles('ojt-documents', Array.isArray(paths?.document_paths) ? paths.document_paths : []),
+        removeStoredFiles('profile-pictures', Array.isArray(paths?.profile_picture_paths) ? paths.profile_picture_paths : []),
+      ]);
+      if (cleanup.some(result => result.status === 'rejected')) {
+        throw new Error('The user was not deleted because some uploaded files could not be removed. Retry, or check Supabase Storage.');
+      }
+      const { error } = await supabase.rpc('ojt_admin_delete_account', { p_user: account.id });
+      if (error) throw error;
+    } catch (error) { resultMessage = error.message || 'Could not delete the user.'; }
     if (version === token && active()) await load(resultMessage);
   }
 
@@ -108,6 +143,17 @@ const AdminDashboard = (() => {
     if (button.dataset.step) { page += Number(button.dataset.step); directory(); return; }
     const account = accounts.find(item => item.id === button.dataset.account);
     if (!account) return;
+    if (button.dataset.action === 'Delete user') {
+      pending = { kind: 'delete-account', account };
+      el('delete-confirm-email').textContent = account.email;
+      const relatedImpact = account.role === 'Professor'
+        ? " Connected students will be disconnected, but the students' own records will remain."
+        : '';
+      el('delete-confirm-detail').textContent = `${account.name} (${account.role}) will lose access immediately. Their account, profile, enrollment, logged hours, sessions, and document records will be permanently deleted.${relatedImpact}`;
+      el('delete-confirm-input').value = ''; el('delete-confirm-apply').disabled = true;
+      el('delete-confirm').returnValue = ''; el('delete-confirm').showModal(); el('delete-confirm-input').focus();
+      return;
+    }
     pending = { kind: 'account', args: { p_user: account.id, p_action: button.dataset.action, p_coordinator: account.coordinator_id } };
     el('confirm-title').textContent = button.dataset.action + '?';
     el('confirm-detail').textContent = account.email + ' — ' + (button.dataset.action === 'Reset coordinator code'
@@ -120,6 +166,17 @@ const AdminDashboard = (() => {
     if (!action || el('confirm').returnValue !== 'apply' || busy || !active()) return;
     if (action.kind === 'requirement') mutate('ojt_admin_set_requirement_active', { p_id: action.id, p_active: false }, 'Requirement removed.');
     else mutate('ojt_admin_manage', action.args, 'Change saved.');
+  };
+  el('delete-confirm-input').oninput = () => {
+    const expected = pending?.kind === 'delete-account' ? pending.account.email : '';
+    el('delete-confirm-apply').disabled = el('delete-confirm-input').value.trim().toLowerCase() !== String(expected).toLowerCase();
+  };
+  el('delete-confirm').onclose = () => {
+    const action = pending; pending = null;
+    const confirmed = action?.kind === 'delete-account' && el('delete-confirm').returnValue === 'delete' &&
+      el('delete-confirm-input').value.trim().toLowerCase() === String(action.account.email).toLowerCase();
+    el('delete-confirm-input').value = ''; el('delete-confirm-apply').disabled = true;
+    if (confirmed && !busy && active()) deleteAccount(action.account);
   };
   return { load, reset };
 })();

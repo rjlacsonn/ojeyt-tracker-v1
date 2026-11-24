@@ -278,6 +278,13 @@
       </article>
       <article class="panel admin-panel"><h2>Recent administrative actions</h2><div id="admin-log"></div></article>
       <dialog id="admin-confirm" aria-labelledby="admin-confirm-title"><form method="dialog"><h2 id="admin-confirm-title"></h2><p id="admin-confirm-detail"></p><div class="modal-actions"><button class="doc-button" value="cancel" autofocus>Cancel</button><button class="doc-button doc-button-primary" value="apply">Confirm</button></div></form></dialog>
+      <dialog id="admin-delete-confirm" aria-labelledby="admin-delete-confirm-title"><form method="dialog">
+        <h2 id="admin-delete-confirm-title">Permanently delete this user?</h2>
+        <p id="admin-delete-confirm-detail"></p>
+        <p id="admin-delete-confirm-warning" class="admin-delete-warning"><strong>This action cannot be undone.</strong> Type the user’s email address to confirm.</p>
+        <label class="admin-delete-confirm-label">Email address <strong id="admin-delete-confirm-email"></strong><input id="admin-delete-confirm-input" type="email" autocomplete="off" spellcheck="false" aria-describedby="admin-delete-confirm-detail admin-delete-confirm-warning"></label>
+        <div class="modal-actions"><button class="doc-button" value="cancel" formnovalidate>Cancel</button><button id="admin-delete-confirm-apply" class="doc-button admin-delete-button" value="delete" disabled>Delete user permanently</button></div>
+      </form></dialog>
       <dialog id="admin-badge-confirm" aria-labelledby="admin-badge-confirm-title"><form method="dialog"><h2 id="admin-badge-confirm-title">Remove this badge?</h2><p id="admin-badge-confirm-detail"></p><div class="modal-actions"><button class="doc-button" value="cancel" autofocus>Cancel</button><button class="doc-button doc-button-primary" value="apply">Confirm</button></div></form></dialog>
     </section>
     <section id="page-dashboard" class="page app-page" aria-label="Dashboard">

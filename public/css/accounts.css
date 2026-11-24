@@ -96,6 +96,7 @@
 .admin-requirement-form input { width: 100%; min-height: 42px; padding: 10px 12px; border: 1px solid #dce4ef; border-radius: 9px; color: var(--ink); font: inherit; font-weight: 400; }
 .admin-requirement-form input:focus { border-color: var(--teal); outline: 3px solid #a3ddd166; }
 .admin-requirement-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.admin-account-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-width: 180px; }
 .admin-requirement-inactive { color: var(--muted); background: #f7f9fb; }
 .admin-requirement-inactive th { text-decoration: line-through; }
 .admin-subheading { margin: 22px 0 12px; font-size: 16px; }
@@ -120,6 +121,17 @@
 #admin-confirm { margin: auto; max-width: min(440px,92vw); border: 0; border-radius: 14px; padding: 24px; }
 #admin-confirm p { margin: 16px 0; }
 #admin-confirm::backdrop { background: #162b3580; }
+#admin-delete-confirm { margin: auto; width: min(520px, 92vw); border: 0; border-radius: 14px; padding: 24px; }
+#admin-delete-confirm p { margin: 16px 0; line-height: 1.6; }
+#admin-delete-confirm::backdrop { background: #162b35a6; }
+.admin-delete-warning { padding: 12px 14px; border-left: 4px solid #b42335; border-radius: 6px; background: #fff1f2; color: #861426; }
+.admin-delete-confirm-label { display: grid; gap: 7px; color: #425069; font-size: 13px; font-weight: 600; }
+.admin-delete-confirm-label strong { overflow-wrap: anywhere; color: var(--ink); }
+.admin-delete-confirm-label input { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #dce4ef; border-radius: 9px; color: var(--ink); font: inherit; font-weight: 400; }
+.admin-delete-confirm-label input:focus { border-color: #b42335; outline: 3px solid #fecdd3; }
+.admin-delete-button { border-color: #a11b31; background: #a11b31; color: #fff; }
+.admin-delete-button:hover:not(:disabled) { border-color: #861426; background: #861426; color: #fff; }
+.admin-delete-button:disabled { border-color: #dce4ef; background: #edf1f5; color: #8a95a5; }
 #admin-badge-confirm { margin: auto; max-width: min(480px,92vw); border: 0; border-radius: 14px; padding: 24px; }
 #admin-badge-confirm p { margin: 16px 0; line-height: 1.6; }
 #admin-badge-confirm::backdrop { background: #162b3580; }

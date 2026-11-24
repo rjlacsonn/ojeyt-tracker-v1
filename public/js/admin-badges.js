@@ -59,7 +59,8 @@ const AdminBadges = (() => {
       if (token !== version || !active()) return;
       if (error) throw error;
       badges = data || []; Gamification.setBadges(badges.filter(badge => badge.is_active));
-      busy = false; list(); el('status').textContent = message;
+      busy = false; list(); el('status').textContent = '';
+      if (message) showToast(message);
     } catch (error) {
       if (token === version) { badges = []; busy = false; list(); el('status').textContent = error.message || 'Could not load badge settings.'; }
     }

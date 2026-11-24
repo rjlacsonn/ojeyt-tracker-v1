@@ -143,3 +143,8 @@ Review also shows each student's document completion and a requirement checklist
 including enrolled students with no submissions. Search or select a student to
 monitor their requirements. Files to review are grouped into collapsible student
 sections so simultaneous submissions do not become one mixed list.
+
+Administrators can also permanently remove accidental or unauthorized signups from
+the Account directory after applying `supabase-admin-account-deletion-migration.sql`.
+This is separate from reversible enrollment disconnection and requires typing the
+user's email address before deletion.
