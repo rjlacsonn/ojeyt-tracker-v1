@@ -4,17 +4,24 @@ const AdminDashboard = (() => {
   let accounts = [], requirements = [], pending = null, version = 0, page = 0, busy = false;
   const pageSize = 25;
   const active = () => currentUser?.accountType === 'admin' && currentPage === 'admin';
+  let verifiedSuperAdmin = false;
+  const superAdmin = () => active() && verifiedSuperAdmin;
 
   function reset() {
-    version++; accounts = []; requirements = []; pending = null; busy = false; page = 0;
+    version++; accounts = []; requirements = []; pending = null; busy = false; page = 0; verifiedSuperAdmin = false;
     if (el('confirm').open) el('confirm').close();
     if (el('delete-confirm').open) el('delete-confirm').close();
     el('refresh').disabled = false;
     for (const id of ['directory', 'requirements', 'stats', 'log', 'status', 'confirm-title', 'confirm-detail']) el(id).replaceChildren();
     el('search').value = ''; el('role').value = ''; el('requirement-add').reset(); el('delete-confirm-input').value = '';
+    el('grant-form').hidden = true; el('grant-form').reset();
+    el('management').hidden = true;
   }
 
   function directory() {
+    el('management').hidden = !superAdmin();
+    el('grant-form').hidden = !superAdmin();
+    el('grant-form').querySelector('button').disabled = busy;
     const term = el('search').value.trim().toLowerCase();
     const matches = accounts.filter(account => (!el('role').value || account.role === el('role').value) &&
       [account.name, account.email, account.coordinator].join(' ').toLowerCase().includes(term));
@@ -23,11 +30,15 @@ const AdminDashboard = (() => {
     const rows = matches.slice(first, first + pageSize).map(account => {
       const action = account.role === 'Professor' ? 'Reset coordinator code' : account.role === 'Student' && account.coordinator_id ? 'Disconnect enrollment' : '';
       const isCurrentAccount = account.id === currentUser?.id;
+      const administrator = ['Administrator', 'Super Admin'].includes(account.role);
+      const canManage = !isCurrentAccount && account.role !== 'Super Admin' && (!administrator || superAdmin());
       const actions = [
-        action ? `<button class="doc-button" data-account="${esc(account.id)}" data-action="${action}" ${busy ? 'disabled' : ''}>${action}</button>` : '',
-        isCurrentAccount ? '<small>Current account</small>' : `<button class="doc-button student-danger-button" data-account="${esc(account.id)}" data-action="Delete user" ${busy ? 'disabled' : ''}>Delete user</button>`,
+        action && canManage && !account.disabled ? `<button class="doc-button" data-account="${esc(account.id)}" data-action="${action}" ${busy ? 'disabled' : ''}>${action}</button>` : '',
+        canManage ? `<button class="doc-button" data-account="${esc(account.id)}" data-action="${account.disabled ? 'Enable user' : 'Disable user'}" ${busy ? 'disabled' : ''}>${account.disabled ? 'Enable user' : 'Disable user'}</button>` : '',
+        canManage && superAdmin() && administrator ? `<button class="doc-button" data-account="${esc(account.id)}" data-action="Remove admin access" ${busy ? 'disabled' : ''}>Remove admin access</button>` : '',
+        isCurrentAccount ? '<small>Current account</small>' : canManage && superAdmin() ? `<button class="doc-button student-danger-button" data-account="${esc(account.id)}" data-action="Delete user" ${busy ? 'disabled' : ''}>Delete user</button>` : '',
       ].filter(Boolean).join('');
-      return `<tr><th scope="row">${esc(account.name)}<small>${esc(account.email)}</small></th><td>${esc(account.role)}</td><td>${esc(account.coordinator || (account.role === 'Student' ? 'Unconnected' : '—'))}</td><td>${account.role === 'Student' ? esc(account.hours) + ' / ' + esc(account.required_hours ?? 'Unassigned') : '—'}</td><td><div class="admin-account-actions">${actions}</div></td></tr>`;
+      return `<tr><th scope="row">${esc(account.name)}<small>${esc(account.email)}</small><span class="doc-status">${account.disabled ? 'Disabled' : 'Enabled'}</span></th><td>${esc(account.role)}</td><td>${esc(account.coordinator || (account.role === 'Student' ? 'Unconnected' : '—'))}</td><td>${account.role === 'Student' ? esc(account.hours) + ' / ' + esc(account.required_hours ?? 'Unassigned') : '—'}</td><td><div class="admin-account-actions">${actions}</div></td></tr>`;
     });
     el('directory').innerHTML = matches.length ? `<div class="admin-table"><table><thead><tr><th>Account</th><th>Role</th><th>Coordinator</th><th>OJT hours</th><th>Action</th></tr></thead><tbody>${rows.join('')}</tbody></table></div><div class="doc-toolbar"><span>${first + 1}–${Math.min(matches.length, first + pageSize)} of ${matches.length}</span><div><button class="doc-button" data-step="-1" ${page ? '' : 'disabled'}>Previous</button> <button class="doc-button" data-step="1" ${first + pageSize >= matches.length ? 'disabled' : ''}>Next</button></div></div>` : '<p>No accounts match this search.</p>';
   }
@@ -47,15 +58,22 @@ const AdminDashboard = (() => {
     if (!active()) return;
     const token = ++version;
     busy = true; el('refresh').disabled = true;
+    verifiedSuperAdmin = false; el('management').hidden = true; el('grant-form').hidden = true;
     el('directory').replaceChildren(); el('requirements').replaceChildren(); el('status').textContent = 'Loading administration…';
     try {
-      const [overview, requirementResult] = await Promise.all([
+      const [overview, requirementResult, superAdminResult] = await Promise.all([
         supabase.rpc('ojt_admin_overview'),
         supabase.rpc('ojt_document_requirements', { p_include_inactive: true }),
+        supabase.rpc('ojt_is_super_admin'),
       ]);
       if (token !== version || !active()) return;
       if (overview.error) throw overview.error;
       if (requirementResult.error) throw requirementResult.error;
+      if (superAdminResult.error) throw new Error('Could not verify Super Admin access. Apply the Super Admin migration, then refresh Administration.');
+      verifiedSuperAdmin = superAdminResult.data === true;
+      currentUser.adminRole = verifiedSuperAdmin ? 'super_admin' : 'admin';
+      const roleLabel = document.getElementById('account-role-label');
+      if (roleLabel) roleLabel.textContent = verifiedSuperAdmin ? 'Super Admin' : 'Administrator';
       accounts = overview.data.accounts;
       requirements = requirementResult.data || [];
       DocumentRequirements.setItems(requirements.filter(item => item.is_active));
@@ -87,7 +105,7 @@ const AdminDashboard = (() => {
   }
 
   async function deleteAccount(account) {
-    if (busy || !active() || account.id === currentUser?.id) return;
+    if (busy || !superAdmin() || account.id === currentUser?.id) return;
     const token = version; busy = true; el('refresh').disabled = true; directory(); requirementList();
     el('status').textContent = `Deleting ${account.email}…`;
     let resultMessage = 'User permanently deleted.';
@@ -108,6 +126,14 @@ const AdminDashboard = (() => {
   }
 
   el('refresh').onclick = () => load();
+  el('grant-form').onsubmit = event => {
+    event.preventDefault();
+    if (busy || !superAdmin()) return;
+    pending = { kind: 'grant-admin', email: new FormData(event.currentTarget).get('email').trim() };
+    el('confirm-title').textContent = 'Add administrator?';
+    el('confirm-detail').textContent = `${pending.email} will receive administrator access to the dashboard and user management.`;
+    el('confirm').returnValue = ''; el('confirm').showModal();
+  };
   for (const id of ['search', 'role']) el(id).oninput = () => { if (!busy && active()) { page = 0; directory(); } };
   el('requirement-add').onsubmit = event => {
     event.preventDefault();
@@ -144,6 +170,7 @@ const AdminDashboard = (() => {
     const account = accounts.find(item => item.id === button.dataset.account);
     if (!account) return;
     if (button.dataset.action === 'Delete user') {
+      if (!superAdmin()) return;
       pending = { kind: 'delete-account', account };
       el('delete-confirm-email').textContent = account.email;
       const relatedImpact = account.role === 'Professor'
@@ -152,6 +179,15 @@ const AdminDashboard = (() => {
       el('delete-confirm-detail').textContent = `${account.name} (${account.role}) will lose access immediately. Their account, profile, enrollment, logged hours, sessions, and document records will be permanently deleted.${relatedImpact}`;
       el('delete-confirm-input').value = ''; el('delete-confirm-apply').disabled = true;
       el('delete-confirm').returnValue = ''; el('delete-confirm').showModal(); el('delete-confirm-input').focus();
+      return;
+    }
+    if (['Disable user', 'Enable user', 'Remove admin access'].includes(button.dataset.action)) {
+      pending = { kind: 'access', id: account.id, action: button.dataset.action };
+      el('confirm-title').textContent = button.dataset.action + '?';
+      el('confirm-detail').textContent = `${account.email} — ` + (button.dataset.action === 'Disable user'
+        ? 'System access will be blocked. Account records, hours, and files will be preserved. You can enable the account again later.'
+        : button.dataset.action === 'Enable user' ? 'System access will be restored.' : 'Administrator privileges will be removed. The account and records will be preserved.');
+      el('confirm').returnValue = ''; el('confirm').showModal();
       return;
     }
     pending = { kind: 'account', args: { p_user: account.id, p_action: button.dataset.action, p_coordinator: account.coordinator_id } };
@@ -164,7 +200,9 @@ const AdminDashboard = (() => {
   el('confirm').onclose = () => {
     const action = pending; pending = null;
     if (!action || el('confirm').returnValue !== 'apply' || busy || !active()) return;
-    if (action.kind === 'requirement') mutate('ojt_admin_set_requirement_active', { p_id: action.id, p_active: false }, 'Requirement removed.');
+    if (action.kind === 'grant-admin') mutate('ojt_super_admin_grant_admin', { p_email: action.email }, 'Administrator added.');
+    else if (action.kind === 'access') mutate('ojt_admin_set_account_access', { p_user: action.id, p_action: action.action }, 'Account access updated.');
+    else if (action.kind === 'requirement') mutate('ojt_admin_set_requirement_active', { p_id: action.id, p_active: false }, 'Requirement removed.');
     else mutate('ojt_admin_manage', action.args, 'Change saved.');
   };
   el('delete-confirm-input').oninput = () => {

@@ -85,3 +85,32 @@ reports that cleanup must be retried or checked in Supabase Storage.
 This migration also exempts authenticated administrators from the professor-approval
 restriction during account and file deletion. If an administrator sees a professor
 approval message while deleting, rerun the latest copy of this migration.
+
+## Super Admin and reversible account disabling
+
+Run `supabase-super-admin-migration.sql` **last**, after all migrations above.
+It preserves existing administrators as regular admins. Appoint the first Super
+Admin explicitly using the UUID verified in Authentication → Users:
+
+```sql
+insert into public.ojt_admins(user_id, admin_role)
+values ('YOUR-VERIFIED-USER-UUID', 'super_admin')
+on conflict(user_id) do update set admin_role = 'super_admin';
+```
+
+Sign out and back in to refresh the dashboard permissions. Super Admins can use
+**Add administrator** with an existing registered account's email, remove admin
+access, disable or enable admins, and permanently delete users. Super Admin
+accounts are protected from dashboard deletion/disabling; appoint or change them
+only in SQL Editor.
+
+Regular admins can disable/enable students and professors, but cannot manage other
+admins or permanently delete accounts or files. Both roles retain document and
+badge configuration features; removing those items only deactivates them and
+preserves records. Disabling an account preserves all its data and blocks database
+and private-file access even for an existing session. It also revokes Auth sessions
+and blocks future sign-ins until enabled. Disabled professors cannot accept new
+student connections; existing students retain their records and tracker access.
+
+Always rerun this migration last if you reapply older role, approval, or deletion
+migrations: older definitions predate these access rules.

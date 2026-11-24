@@ -97,6 +97,8 @@
 .admin-requirement-form input:focus { border-color: var(--teal); outline: 3px solid #a3ddd166; }
 .admin-requirement-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .admin-account-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-width: 180px; }
+.admin-grant-form { grid-template-columns: minmax(0, 1fr) auto; margin-top: 16px; }
+@media (max-width: 560px) { .admin-grant-form { grid-template-columns: 1fr; } }
 .admin-requirement-inactive { color: var(--muted); background: #f7f9fb; }
 .admin-requirement-inactive th { text-decoration: line-through; }
 .admin-subheading { margin: 22px 0 12px; font-size: 16px; }

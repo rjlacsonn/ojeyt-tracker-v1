@@ -167,7 +167,7 @@ function applyAccountNavigation() {
     ? 'Professor'
     : currentUser.accountType === 'student' ? `Student${currentUser.accountStatus === 'pending' ? ' · Pending approval' : ''}` : 'Access unavailable';
   const hours = document.getElementById('student-hours-settings');
-  if (role && currentUser.accountType === 'admin') role.textContent = 'Administrator';
+  if (role && currentUser.accountType === 'admin') role.textContent = currentUser.adminRole === 'super_admin' ? 'Super Admin' : 'Administrator';
   if (hours) hours.hidden = currentUser.accountType !== 'student';
 }
 

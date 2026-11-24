@@ -45,6 +45,18 @@ async function runTests() {
   await test('Unconfirmed account fails closed', async () => {
     assert(access.home({}) === 'account-unavailable' && !access.canVisit({}, 'document-review') && !access.canVisit({}, 'dashboard'), 'Unknown account granted access');
   });
+  await test('Super admin retains administrator navigation and server-confirmed role', async () => {
+    const role = await access.load({ rpc: async () => ({ data: { account_type: 'admin', status: 'active', admin_role: 'super_admin' } }) });
+    assert(role.adminRole === 'super_admin' && access.home(role) === 'admin' && access.canVisit(role, 'admin'), 'Super admin access lost');
+    const regular = await access.load({ rpc: async () => ({ data: { account_type: 'admin', status: 'active', admin_role: 'admin' } }) });
+    assert(regular.adminRole === 'admin', 'Regular admin elevated');
+  });
+  await test('Disabled accounts fail closed with a clear recovery message', async () => {
+    let caught;
+    try { await access.load({ rpc: async () => ({ data: { status: 'disabled' } }) }); } catch (error) { caught = error; }
+    assert(caught?.code === 'OJT_ACCOUNT_DISABLED', 'Disabled account was accepted');
+    assert(access.describeError(caught).title === 'Account disabled', 'Disabled account error is unclear');
+  });
   await test('Account access comes from database context', async () => {
     const role = await access.load({ rpc: async name => ({ data: { account_type: 'student', status: 'pending', recipient_id: 'professor', recipient_name: 'Maam Geece' } }) });
     assert(role.accountType === 'student' && role.accountStatus === 'pending' && role.recipientName === 'Maam Geece', 'Context not used');
